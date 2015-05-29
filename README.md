@@ -183,6 +183,7 @@ class Example {
     }
   }
 }
+
 ```
 
 [example/example_thread_interrupt_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_2.dart)
@@ -302,6 +303,7 @@ class Example {
     print("t2.Join() returned.");
   }
 }
+
 ```
 
 [example/example_thread_timer_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_timer_1.dart)
