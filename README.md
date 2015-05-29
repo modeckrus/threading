@@ -9,6 +9,8 @@ Version: 0.0.1
 
 Examples:
 
+**example/example_thread_interrupt_1.dart**
+
 ```dart
 library threading.example.example_thread_interrupt_1;
 
@@ -59,6 +61,8 @@ class Example {
 }
 ```
 
+**example/example_thread_interrupt_2.dart**
+
 ```dart
 library threading.example.example_thread_interrupt_2;
 
@@ -108,6 +112,7 @@ class Example {
   }
 }
 ```
+**example/example_thread_join_1.dart**
 
 ```dart
 library threading.example.example_thread_join_1;
@@ -139,6 +144,8 @@ class Example {
 }
 
 ```
+
+**example/example_thread_join_2.dart**
 
 ```dart
 library threading.example.example_thread_join_2;
@@ -172,6 +179,8 @@ class Example {
   }
 }
 ```
+
+**example/example_thread_timer_1.dart**
 
 ```dart
 library threading.example.example_thread_timer_1;
