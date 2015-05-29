@@ -1,15 +1,15 @@
 threading
 =====
 
-This is the implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
+Threading is an implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
 
-Version: 0.0.1
+Version: 0.0.2
 
 **Initial release**
 
 Examples:
 
-**example/example_thread_interrupt_1.dart**
+[example/example_thread_interrupt_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_1.dart)
 
 ```dart
 library threading.example.example_thread_interrupt_1;
@@ -61,7 +61,7 @@ class Example {
 }
 ```
 
-**example/example_thread_interrupt_2.dart**
+[example/example_thread_interrupt_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_2.dart)
 
 ```dart
 library threading.example.example_thread_interrupt_2;
@@ -112,7 +112,8 @@ class Example {
   }
 }
 ```
-**example/example_thread_join_1.dart**
+
+[example/example_thread_join_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_1.dart)
 
 ```dart
 library threading.example.example_thread_join_1;
@@ -145,7 +146,7 @@ class Example {
 
 ```
 
-**example/example_thread_join_2.dart**
+[example/example_thread_join_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_2.dart)
 
 ```dart
 library threading.example.example_thread_join_2;
@@ -180,7 +181,7 @@ class Example {
 }
 ```
 
-**example/example_thread_timer_1.dart**
+[example/example_thread_timer_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_timer_1.dart)
 
 ```dart
 library threading.example.example_thread_timer_1;
