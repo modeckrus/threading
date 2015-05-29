@@ -9,6 +9,13 @@ Version: {{VERSION}}
 
 Examples:
 
+[example/example_producer_consumer_problem.dart](https://github.com/mezoni/threading/blob/master/example/example_producer_consumer_problem.dart)
+
+```dart
+{{example/example_producer_consumer_problem.dart}}
+```
+
+
 [example/example_thread_interrupt_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_1.dart)
 
 ```dart
