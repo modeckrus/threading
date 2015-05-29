@@ -18,7 +18,6 @@ Future main() async {
   await runExample("Example: Producer-consumer problem", example_producer_consumer_problem.main);
 }
 
-
 Future runExample(String name, Future example()) async {
   print("================");
   print(name);

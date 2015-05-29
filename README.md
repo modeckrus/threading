@@ -3,7 +3,7 @@ threading
 
 Threading is an implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
 
-Version: 0.0.2
+Version: 0.0.3
 
 **Initial release**
 
@@ -199,42 +199,41 @@ Future main() async {
 }
 
 class Example {
-  bool _sleepSwitch = false;
-
-  void set sleepSwitch(bool sleepSwitch) {
-    _sleepSwitch = sleepSwitch;
-  }
-
   Future run() async {
-    var thread = new Thread(work);
-    await thread.start();
-    // The following line causes an exception to be thrown
-    // in "work" if thread is currently blocked
-    // or becomes blocked in the future.
-    await thread.interrupt();
-    print("Main thread calls interrupt on new thread.");
-    // Tell newThread to go to sleep.
-    sleepSwitch = true;
-    // Wait for new thread to end.
-    await thread.join();
+    var t0 = new Thread(workAsync);
+    var t1 = new Thread(workSync);
+    await t0.start();
+    await t1.start();
+    await t0.join();
+    await t1.join();
+    print("Done");
   }
 
-  Future work() async {
-    print("Thread is executing 'work'.");
-    while (!_sleepSwitch) {
-      await Thread.sleep(0);
-    }
+  Future workAsync() async {
+    new Future(() {
+      print("Future - should never be executed");
+    });
 
-    try {
-      print("Thread going to sleep.");
-      // When thread goes to sleep, it is immediately
-      // woken up by a ThreadInterruptException.
-      await Thread.sleep(-1);
-    } on ThreadInterruptException catch (e) {
-      print("Thread cannot go to sleep - interrupted by main thread.");
-    }
+    Timer.run(() {
+      print("Timer - should never be executed");
+    });
+
+    throw new ThreadInterruptException();
+  }
+
+  void workSync() {
+    new Future(() {
+      print("Future - should never be executed");
+    });
+
+    Timer.run(() {
+      print("Timer - should never be executed");
+    });
+
+    throw new ThreadInterruptException();
   }
 }
+
 ```
 
 [example/example_thread_join_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_1.dart)

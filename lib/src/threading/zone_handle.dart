@@ -28,20 +28,7 @@ class _ZoneHandle {
   }
 
   ZoneSpecification _createSpecification() {
-    return new ZoneSpecification(
-        createPeriodicTimer: _createPeriodicTimer,
-        createTimer: _createTimer,
-        errorCallback: _errorCallback,
-        fork: _fork,
-        handleUncaughtError: _handleUncaughtError,
-        print: _print,
-        registerBinaryCallback: _registerBinaryCallback,
-        registerCallback: _registerCallback,
-        registerUnaryCallback: _registerUnaryCallback,
-        run: _run,
-        runBinary: _runBinary,
-        runUnary: _runUnary,
-        scheduleMicrotask: _scheduleMicrotask);
+    return new ZoneSpecification(createPeriodicTimer: _createPeriodicTimer, createTimer: _createTimer, errorCallback: _errorCallback, fork: _fork, handleUncaughtError: _handleUncaughtError, print: _print, registerBinaryCallback: _registerBinaryCallback, registerCallback: _registerCallback, registerUnaryCallback: _registerUnaryCallback, run: _run, runBinary: _runBinary, runUnary: _runUnary, scheduleMicrotask: _scheduleMicrotask);
   }
 
   Timer _createTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) {
