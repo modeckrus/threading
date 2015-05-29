@@ -17,7 +17,7 @@ void main(List<String> args) {
     FileUtils.touch([t.name], create: true);
   });
 
-  file(README_MD, [README_MD_IN, PUBSPEC_YAML, EXAMPLE_THREAD_INTERRUPT_1_DART, EXAMPLE_THREAD_INTERRUPT_2_DART, EXAMPLE_THREAD_JOIN_1_DART, EXAMPLE_THREAD_JOIN_2_DART], (Target t, Map args) {
+  file(README_MD, [README_MD_IN, PUBSPEC_YAML, EXAMPLE_THREAD_INTERRUPT_1_DART, EXAMPLE_THREAD_INTERRUPT_2_DART, EXAMPLE_THREAD_JOIN_1_DART, EXAMPLE_THREAD_JOIN_2_DART, EXAMPLE_THREAD_TIMER_1_DART], (Target t, Map args) {
     var sources = t.sources.toList();
     var template = new File(sources.removeAt(0)).readAsStringSync();
     // Remove "pubspec.yaml"
