@@ -43,9 +43,9 @@ class Thread {
 
   Timer _wakeupTimer;
 
-  // TODO:
   Zone _zone;
 
+  // TODO:
   Thread(Function computation) {
     if (computation == null) {
       throw new ArgumentError.notNull("computation");
@@ -100,6 +100,10 @@ class Thread {
       default:
         return true;
     }
+  }
+
+  ThreadState get state {
+    return _state;
   }
 
   Future interrupt() {
