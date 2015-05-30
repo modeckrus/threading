@@ -1,3 +1,7 @@
+## 0.0.4
+
+- Fixed bug with exception injection. Has the effect on interruption of the passive threads 
+
 ## 0.0.3
 
 - Added public getter `Thread.state` 

@@ -134,9 +134,9 @@ class Thread {
    * Initiates the interruption of the [Thread].
    */
   Future interrupt() {
-    _block();
-    _interrupt();
-    return _blocking.future;
+    _current._block();
+    _current._interrupt(this);
+    return _current._blocking.future;
   }
 
   /**
@@ -163,6 +163,13 @@ class Thread {
     }
 
     return "$runtimeType '$name'";
+  }
+
+  void _abortOrInterruptPassive() {
+    if (_isInterruptRequested) {
+      _isInterruptRequested = false;
+      _injectException(new ThreadInterruptException());
+    }
   }
 
   Future _acquire(ConditionVariable monitor) {
@@ -299,11 +306,32 @@ class Thread {
     _zone.scheduleMicrotask(microtask);
   }
 
-  void _interrupt() {
-    if (_zone == Zone.ROOT) {
+  void _injectException(Object error) {
+    _cancelWakeupTimer();
+    _failUp(error);
+    switch (_state) {
+      case ThreadState.Joined:
+      case ThreadState.Sleeping:
+      case ThreadState.Syncing:
+        _state = ThreadState.Active;
+        break;
+      case ThreadState.Waiting:
+        _moveToReadyQueue(_monitor);
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _interrupt(Thread thread) {
+    if (thread._zone == Zone.ROOT) {
       _failUp(new ThreadStateError("Unable to interrupt the main thread"));
     } else {
-      _isInterruptRequested = true;
+      thread._isInterruptRequested = true;
+      if (thread.isPassive) {
+        thread._abortOrInterruptPassive();
+      }
+
       _yieldUp();
     }
   }

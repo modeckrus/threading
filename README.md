@@ -3,7 +3,7 @@ threading
 
 Threading is an implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
 
-Version: 0.0.3
+Version: 0.0.4
 
 **Initial release**
 

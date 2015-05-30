@@ -357,6 +357,29 @@ Future testThreadInterrupt() async {
     await t0.join();
     expect(value, false, reason: "Value was changed");
   });
+
+  await testAsync("Interrupt passive thread", () async {
+    var value = false;
+    ThreadState state;
+    Future work() async {
+      try {
+        // Sleep infinitely
+        await Thread.sleep(-1);
+      } on ThreadInterruptException catch (e) {
+        value = true;
+      }
+    }
+
+    var t0 = new Thread(work);
+    await t0.start();
+    // Allows thread "t0" to start
+    await Thread.sleep(10);
+    state = t0.state;
+    await t0.interrupt();
+    await t0.join();
+    expect(value, true, reason: "Value not was changed");
+    expect(state, ThreadState.Sleeping, reason: "Thead was not in passive state");
+  });
 }
 
 Future testThreadJoin() async {
