@@ -1,5 +1,8 @@
 part of threading;
 
+/**
+ * The [ThreadTimer] is a timer that executed in a diffirent [Thread].
+ */
 class ThreadTimer implements Timer {
   Timer _timer;
 

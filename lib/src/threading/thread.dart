@@ -2,6 +2,15 @@ part of threading;
 
 typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackTrace);
 
+/**
+ * The [Thread] of execution is the smallest sequence of programmed
+ * instructions that can be managed independently.
+ *
+ * This is an implementation of the cooperative (non-preemptive) multitasking
+ * in a single isolate.
+ * Once a thread is given control it continues to run until it explicitly
+ * yields control or it blocks.
+ */
 class Thread {
   static Thread _current = new Thread._main();
 
@@ -11,6 +20,9 @@ class Thread {
     return _current;
   }
 
+  /**
+   * The name of the [Thread].
+   */
   String name;
 
   Completer _blocking;
@@ -66,6 +78,9 @@ class Thread {
     _zone = new _ZoneHandle(this).zone;
   }
 
+  /**
+   * Indicates whether or not the thread was aborted.
+   */
   bool get isAborted {
     switch (_state) {
       case ThreadState.Terminated:
@@ -79,6 +94,9 @@ class Thread {
     }
   }
 
+  /**
+   * Indicates whether or not the thread in a passive mode.
+   */
   bool get isPassive {
     switch (_state) {
       case ThreadState.Joined:
@@ -92,6 +110,9 @@ class Thread {
     }
   }
 
+  /**
+   * Indicates whether or not the thread is running.
+   */
   bool get isRunning {
     switch (_state) {
       case ThreadState.Terminated:
@@ -102,22 +123,34 @@ class Thread {
     }
   }
 
+  /**
+   * Returns the current state of the [Thread].
+   */
   ThreadState get state {
     return _state;
   }
 
+  /**
+   * Initiates the interruption of the [Thread].
+   */
   Future interrupt() {
     _block();
     _interrupt();
     return _blocking.future;
   }
 
+  /**
+   * Joins the [Thread] and returns when the thread execution has completed.
+   */
   Future<bool> join([int timeout]) {
     _current._block();
     _current._join(this, timeout);
     return _current._blocking.future;
   }
 
+  /**
+   * Initiates the execution of the [Thread].
+   */
   Future start([Object parameter]) {
     _block();
     _start(parameter);

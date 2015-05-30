@@ -1,5 +1,9 @@
 part of threading;
 
+/**
+ * The [ConditionVariable] is basically a container of threads that are waiting
+ * on a certain condition.
+ */
 class ConditionVariable {
   final Lock _owner;
 

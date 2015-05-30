@@ -1,7 +1,7 @@
 part of threading;
 
 /**
- * A [Lock] or mutex (from mutual exclusion) is a synchronization mechanism
+ * The [Lock] or mutex (from mutual exclusion) is a synchronization mechanism
  * for enforcing limits on access to a resource in an environment where there
  * are many threads of execution.
  */
