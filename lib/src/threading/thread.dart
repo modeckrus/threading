@@ -278,6 +278,11 @@ class Thread {
     }
   }
 
+  void _fail(Object error) {
+    _failUp(error);
+    _block();
+  }
+
   void _failUp(Object error) {
     try {
       throw error;
@@ -308,7 +313,7 @@ class Thread {
 
   void _injectException(Object error) {
     _cancelWakeupTimer();
-    _failUp(error);
+    _fail(error);
     switch (_state) {
       case ThreadState.Joined:
       case ThreadState.Sleeping:

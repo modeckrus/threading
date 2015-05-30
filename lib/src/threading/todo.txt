@@ -2,3 +2,4 @@ Add test ConditionVariable.broadcast()
 Add more examples 
 Add examples with a long running tasks in another isolate
 Implement Thread.abort()
+Add message to ThreadInterruptException (Eg. Thread has been interrupted from a waiting state)

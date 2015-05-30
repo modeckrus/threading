@@ -15,7 +15,6 @@ Examples:
 {{example/example_producer_consumer_problem.dart}}
 ```
 
-
 [example/example_thread_interrupt_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_1.dart)
 
 ```dart
@@ -26,6 +25,12 @@ Examples:
 
 ```dart
 {{example/example_thread_interrupt_2.dart}}
+```
+
+[example/example_thread_interrupt_3.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_3.dart)
+
+```dart
+{{example/example_thread_interrupt_3.dart}}
 ```
 
 [example/example_thread_join_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_1.dart)

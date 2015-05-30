@@ -17,7 +17,7 @@ void main(List<String> args) {
     FileUtils.touch([t.name], create: true);
   });
 
-  file(README_MD, [README_MD_IN, PUBSPEC_YAML, EXAMPLE_PRODUCER_CONSUMER_PROBLEM_DART, EXAMPLE_THREAD_INTERRUPT_1_DART, EXAMPLE_THREAD_INTERRUPT_2_DART, EXAMPLE_THREAD_JOIN_1_DART, EXAMPLE_THREAD_JOIN_2_DART, EXAMPLE_THREAD_TIMER_1_DART], (Target t, Map args) {
+  file(README_MD, [README_MD_IN, PUBSPEC_YAML, EXAMPLE_PRODUCER_CONSUMER_PROBLEM_DART, EXAMPLE_THREAD_INTERRUPT_1_DART, EXAMPLE_THREAD_INTERRUPT_2_DART, EXAMPLE_THREAD_INTERRUPT_3_DART, EXAMPLE_THREAD_JOIN_1_DART, EXAMPLE_THREAD_JOIN_2_DART, EXAMPLE_THREAD_TIMER_1_DART], (Target t, Map args) {
     var sources = t.sources.toList();
     var template = new File(sources.removeAt(0)).readAsStringSync();
     // Remove "pubspec.yaml"
@@ -90,6 +90,7 @@ const String CHANGE_LOG = "tool/change.log";
 const String CHANGELOG_MD = "CHANGELOG.md";
 const String EXAMPLE_THREAD_INTERRUPT_1_DART = "example/example_thread_interrupt_1.dart";
 const String EXAMPLE_THREAD_INTERRUPT_2_DART = "example/example_thread_interrupt_2.dart";
+const String EXAMPLE_THREAD_INTERRUPT_3_DART = "example/example_thread_interrupt_3.dart";
 const String EXAMPLE_THREAD_JOIN_1_DART = "example/example_thread_join_1.dart";
 const String EXAMPLE_THREAD_JOIN_2_DART = "example/example_thread_join_2.dart";
 const String EXAMPLE_THREAD_TIMER_1_DART = "example/example_thread_timer_1.dart";
