@@ -23,6 +23,6 @@ Future main() async {
 Future runExample(String name, Future example()) async {
   print("================");
   print(name);
-  print("================");
+  print("----------------");
   await example();
 }

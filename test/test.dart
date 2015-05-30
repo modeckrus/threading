@@ -373,7 +373,7 @@ Future testThreadInterrupt() async {
     var t0 = new Thread(work);
     await t0.start();
     // Allows thread "t0" to start
-    await Thread.sleep(10);
+    await Thread.sleep(0);
     state = t0.state;
     await t0.interrupt();
     await t0.join();

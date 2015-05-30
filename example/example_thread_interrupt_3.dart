@@ -12,10 +12,8 @@ class Example {
   Lock someLock = new Lock();
 
   Future run() async {
-    Thread.current.name = "main";
     print("Main thread starting");
     var secondThread = new Thread(threadJob);
-    secondThread.name = "secondThread";
     await secondThread.start();
     print("Main thread sleeping");
     await Thread.sleep(500);
