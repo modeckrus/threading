@@ -7,31 +7,27 @@ class _EventLoop {
 
   LinkedList<_LinkedListEntry<_ThreadCallback>> timerQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
+  LinkedList<_LinkedListEntry<_ThreadCallback>> wakeupQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+
   bool _isScheduled = false;
-
-  void _addMicrotaskCallback(_ThreadCallback callback) {
-    var entry = new _LinkedListEntry(callback);
-    microtaskQueue.add(entry);
-    schedule();
-  }
-
-  void _addTimerCallback(_ThreadCallback callback) {
-    var entry = new _LinkedListEntry(callback);
-    timerQueue.add(entry);
-    schedule();
-  }
 
   void loop() {
     _isScheduled = false;
     var done = false;
     _LinkedListEntry<_ThreadCallback> entry;
     var isProductive = false;
-    for (var step = 0; step < 2; step++) {
+    for (var step = 0; step < 3; step++) {
       LinkedList queue;
-      if (step == 0) {
-        queue = microtaskQueue;
-      } else {
-        queue = timerQueue;
+      switch (step) {
+        case 0:
+          queue = wakeupQueue;
+          break;
+        case 1:
+          queue = microtaskQueue;
+          break;
+        case 2:
+          queue = timerQueue;
+          break;
       }
 
       if (queue.isEmpty) {
@@ -64,7 +60,7 @@ class _EventLoop {
     }
 
     if (isProductive) {
-      if (!microtaskQueue.isEmpty || !timerQueue.isEmpty) {
+      if (!microtaskQueue.isEmpty || !timerQueue.isEmpty || !wakeupQueue.isEmpty) {
         schedule();
       }
     }
@@ -77,5 +73,23 @@ class _EventLoop {
 
     _isScheduled = true;
     Zone.ROOT.scheduleMicrotask(loop);
+  }
+
+  void _addMicrotaskCallback(_ThreadCallback callback) {
+    var entry = new _LinkedListEntry(callback);
+    microtaskQueue.add(entry);
+    schedule();
+  }
+
+  void _addTimerCallback(_ThreadCallback callback) {
+    var entry = new _LinkedListEntry(callback);
+    timerQueue.add(entry);
+    schedule();
+  }
+
+  void _addWakeupCallback(_ThreadCallback callback) {
+    var entry = new _LinkedListEntry(callback);
+    wakeupQueue.add(entry);
+    schedule();
   }
 }

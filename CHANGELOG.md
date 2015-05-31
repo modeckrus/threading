@@ -1,6 +1,11 @@
+## 0.0.5
+
+- Bug fixes
+- Solved the problem with sleeping microtasks 
+
 ## 0.0.4
 
-- Fixed bug with exception injection. Has the effect on interruption of the passive threads 
+- Fixed bug with exception injection. Has the effect on interruption of the passive threads
 
 ## 0.0.3
 

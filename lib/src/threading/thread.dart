@@ -35,6 +35,8 @@ class Thread {
 
   bool _isInterruptRequested = false;
 
+  bool _isWakeupRequested = false;
+
   Thread _joinedThread;
 
   Set<Thread> _joinSet;
@@ -284,6 +286,7 @@ class Thread {
   }
 
   void _failUp(Object error) {
+    _isWakeupRequested = true;
     try {
       throw error;
     } catch (error, stackTrace) {
@@ -591,11 +594,13 @@ class Thread {
         _timedOut = true;
         break;
       default:
+        _failUp(new ThreadStateError());
         break;
     }
   }
 
   void _yieldUp([Object value]) {
+    _isWakeupRequested = true;
     _blocking.complete(value);
   }
 

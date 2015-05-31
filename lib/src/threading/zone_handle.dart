@@ -122,11 +122,17 @@ class _ZoneHandle {
   }
 
   void _scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
+    var isWakeupRequested = thread._isWakeupRequested;
+    thread._isWakeupRequested = false;
     void callback() {
       thread._pendingCallbackCount--;
       thread._scheduledCallbackCount++;
       var callback = new _ThreadCallback(thread, f);
-      _EventLoop.current._addMicrotaskCallback(callback);
+      if (isWakeupRequested) {
+        _EventLoop.current._addWakeupCallback(callback);
+      } else {
+        _EventLoop.current._addMicrotaskCallback(callback);
+      }
     }
 
     thread._pendingCallbackCount++;

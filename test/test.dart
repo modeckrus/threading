@@ -4,7 +4,6 @@ import "dart:io";
 import 'package:threading/threading.dart';
 
 Future main() async {
-  Thread.current.name = "main";
   await testConditionVariable();
   await testLockAcquire();
   await testLockTryAcquire();
@@ -346,14 +345,13 @@ Future testThreadInterrupt() async {
   await testAsync("Interrupt thread (itself)", () async {
     var value = false;
     Future work() async {
-      Thread.current.interrupt();
+      await Thread.current.interrupt();
       await Thread.sleep(500);
       value = true;
     }
 
     var t0 = new Thread(work);
     await t0.start();
-    await t0.interrupt();
     await t0.join();
     expect(value, false, reason: "Value was changed");
   });
