@@ -3,11 +3,30 @@ threading
 
 Threading is an implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
 
-Version: 0.0.6
+Version: 0.0.7
 
 **Initial release**
 
-Examples:
+Threading package is an implementation of the software threads.  
+Software threads executed in a single isolate and at the same time provides  
+behavior of the standard threads.  
+They can be called as a software emulation because they does not executed in  
+preemptive mode.  
+But on the other hand, they have only two limitation:  
+
+- Executed in a single isolate
+- Does not switches the context by the hardware interrupt
+
+In all other cases they are works like the normal threads executed on an  
+uniprocessor system in cooperative mode.  
+
+**Features**
+
+- Sleep, join and interrupt threads
+- Acquire, release locks
+- Wait, signal and broadcast by condition variables  
+
+**Examples:**
 
 [example/example_producer_consumer_problem.dart](https://github.com/mezoni/threading/blob/master/example/example_producer_consumer_problem.dart)
 
@@ -147,10 +166,6 @@ Future main() async {
 class Example {
   bool _sleepSwitch = false;
 
-  void set sleepSwitch(bool sleepSwitch) {
-    _sleepSwitch = sleepSwitch;
-  }
-
   Future run() async {
     var thread = new Thread(work);
     await thread.start();
@@ -160,7 +175,7 @@ class Example {
     await thread.interrupt();
     print("Main thread calls interrupt on new thread.");
     // Tell newThread to go to sleep.
-    sleepSwitch = true;
+    _sleepSwitch = true;
     // Wait for new thread to end.
     await thread.join();
   }

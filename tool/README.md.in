@@ -7,5 +7,24 @@ Version: {{VERSION}}
 
 **Initial release**
 
-Examples:
+Threading package is an implementation of the software threads.  
+Software threads executed in a single isolate and at the same time provides  
+behavior of the standard threads.  
+They can be called as a software emulation because they does not executed in  
+preemptive mode.  
+But on the other hand, they have only two limitation:  
+
+- Executed in a single isolate
+- Does not switches the context by the hardware interrupt
+
+In all other cases they are works like the normal threads executed on an  
+uniprocessor system in cooperative mode.  
+
+**Features**
+
+- Sleep, join and interrupt threads
+- Acquire, release locks
+- Wait, signal and broadcast by condition variables  
+
+**Examples:**
 

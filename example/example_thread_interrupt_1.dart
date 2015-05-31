@@ -11,10 +11,6 @@ Future main() async {
 class Example {
   bool _sleepSwitch = false;
 
-  void set sleepSwitch(bool sleepSwitch) {
-    _sleepSwitch = sleepSwitch;
-  }
-
   Future run() async {
     var thread = new Thread(work);
     await thread.start();
@@ -24,7 +20,7 @@ class Example {
     await thread.interrupt();
     print("Main thread calls interrupt on new thread.");
     // Tell newThread to go to sleep.
-    sleepSwitch = true;
+    _sleepSwitch = true;
     // Wait for new thread to end.
     await thread.join();
   }
