@@ -3,7 +3,7 @@ threading
 
 Threading is an implementation of the cooperative, non-preemptive multitasking (software threads). Also can be used in conjunction with any third-party libraries for parallel computations (for the coordination and synchronization).
 
-Version: 0.0.5
+Version: 0.0.6
 
 **Initial release**
 
@@ -129,7 +129,6 @@ class _BoundedBuffer<T> {
     return _items.sublist(0, _count).toString();
   }
 }
-
 ```
 
 [example/example_thread_interrupt_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_1.dart)
@@ -182,7 +181,6 @@ class Example {
     }
   }
 }
-
 ```
 
 [example/example_thread_interrupt_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_2.dart)
@@ -233,7 +231,6 @@ class Example {
     throw new ThreadInterruptException();
   }
 }
-
 ```
 
 [example/example_thread_interrupt_3.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_3.dart)
@@ -286,7 +283,6 @@ class Example {
     }
   }
 }
-
 ```
 
 [example/example_thread_join_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_1.dart)
@@ -319,7 +315,6 @@ class Example {
     await Thread.sleep(waitTime);
   }
 }
-
 ```
 
 [example/example_thread_join_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_2.dart)
@@ -355,7 +350,6 @@ class Example {
     print("t2.Join() returned.");
   }
 }
-
 ```
 
 [example/example_thread_timer_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_timer_1.dart)
@@ -398,5 +392,5 @@ class Example {
     sw.stop();
   }
 }
-
 ```
+

@@ -77,7 +77,7 @@ class Thread {
   Thread._main() {
     _pendingCallbackCount++;
     _state = ThreadState.Active;
-    _zone = new _ZoneHandle(this).zone;
+    _zone = Zone.ROOT;
   }
 
   /**
@@ -434,9 +434,9 @@ class Thread {
     _addTimer(_wakeupTimer);
   }
 
-  Future _signal(ConditionVariable cv) {
+  Future _signal(ConditionVariable monitor) {
     _block();
-    _signal_(cv);
+    _signal_(monitor);
     return _blocking.future;
   }
 
@@ -539,9 +539,9 @@ class Thread {
     monitor._lockOwner = null;
   }
 
-  Future _wait(ConditionVariable cv, int timeout) {
+  Future _wait(ConditionVariable monitor, int timeout) {
     _block();
-    _wait_(cv, timeout);
+    _wait_(monitor, timeout);
     return _blocking.future;
   }
 

@@ -4,10 +4,25 @@ import "package:build_tools/build_shell.dart";
 import "package:build_tools/build_tools.dart";
 import "package:build_tools/build_utils.dart";
 import "package:file_utils/file_utils.dart";
+import "package:path/path.dart" as lib_path;
 
 void main(List<String> args) {
   // Change directory to root
   FileUtils.chdir("..");
+
+  var readmeFiles = <String>[];
+  readmeFiles.add("tool/README.md.in");
+  readmeFiles.add("pubspec.yaml");
+  var examples = FileUtils.glob("example/example_*.dart").toList();
+  var cwd = FileUtils.getcwd();
+  for (var i = 0; i < examples.length; i++) {
+    var file = examples[i];
+    file = lib_path.relative(file, from: cwd);
+    file = file.replaceAll("\\", "/");
+    examples[i] = file;
+  }
+
+  readmeFiles.addAll(examples);
 
   file(CHANGELOG_MD, [CHANGE_LOG], (Target t, Map args) {
     writeChangelogMd();
@@ -17,14 +32,18 @@ void main(List<String> args) {
     FileUtils.touch([t.name], create: true);
   });
 
-  file(README_MD, [README_MD_IN, PUBSPEC_YAML, EXAMPLE_PRODUCER_CONSUMER_PROBLEM_DART, EXAMPLE_THREAD_INTERRUPT_1_DART, EXAMPLE_THREAD_INTERRUPT_2_DART, EXAMPLE_THREAD_INTERRUPT_3_DART, EXAMPLE_THREAD_JOIN_1_DART, EXAMPLE_THREAD_JOIN_2_DART, EXAMPLE_THREAD_TIMER_1_DART], (Target t, Map args) {
+  file(README_MD, readmeFiles, (Target t, Map args) {
     var sources = t.sources.toList();
     var template = new File(sources.removeAt(0)).readAsStringSync();
     // Remove "pubspec.yaml"
     sources.removeAt(0);
     for (var filename in sources) {
       var text = new File(filename).readAsStringSync();
-      template = template.replaceFirst("{{$filename}}", text);
+      template = template + "[$filename](https://github.com/mezoni/threading/blob/master/$filename)\n\n";
+      template = template + "```dart\n";
+      template = template + text;
+      template = template + "```\n\n";
+      //template = template.replaceFirst("{{$filename}}", text);
     }
 
     template = template.replaceFirst("{{DESCRIPTION}}", getDescription());

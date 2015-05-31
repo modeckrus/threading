@@ -1,7 +1,11 @@
+## 0.0.6
+
+- Bug fixes 
+
 ## 0.0.5
 
 - Bug fixes
-- Solved the problem with sleeping microtasks 
+- Solved the problem with sleeping microtasks
 
 ## 0.0.4
 
