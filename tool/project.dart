@@ -43,7 +43,11 @@ void main(List<String> args) {
       template = template + "```dart\n";
       template = template + text;
       template = template + "```\n\n";
-      //template = template.replaceFirst("{{$filename}}", text);
+      var result = captureExample(filename);
+      template = template + "Output:\n\n";
+      template = template + "```\n";
+      template = template + result;
+      template = template + "```\n\n";
     }
 
     template = template.replaceFirst("{{DESCRIPTION}}", getDescription());
@@ -185,6 +189,17 @@ void logChanges(String message) {
   sb.write("${getVersion()} $message");
   fp.writeStringSync(sb.toString());
   fp.closeSync();
+}
+
+String captureExample(String example) {
+  var arguments = <String>[];
+  arguments.add(example);
+  var result = Process.runSync("dart", arguments);
+  if (result.exitCode == 0) {
+    return result.stdout.toString();
+  } else {
+    return "";
+  }
 }
 
 void updateVersion(String version) {

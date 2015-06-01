@@ -88,6 +88,33 @@ Future runThreads() async {
 }
 ```
 
+Output:
+
+```
+Futures (linear execution)
+----------------
+A: 0
+A: 1
+A: 2
+B: 0
+B: 1
+B: 2
+C: 0
+C: 1
+C: 2
+Threads (interleaved execution)
+----------------
+A: 0
+B: 0
+C: 0
+A: 1
+B: 1
+C: 1
+A: 2
+B: 2
+C: 2
+```
+
 [example/example_producer_consumer_problem.dart](https://github.com/mezoni/threading/blob/master/example/example_producer_consumer_problem.dart)
 
 ```dart
@@ -204,6 +231,21 @@ class _BoundedBuffer<T> {
 }
 ```
 
+Output:
+
+```
+Producer 0: => 0
+Producer 1: => 1
+Consumer 0: <= 0
+Producer 2: => 2
+Consumer 1: <= 1
+Producer 3: => 3
+Consumer 2: <= 2
+Consumer 3: <= 3
+Produced: 4
+Consumed: 4
+```
+
 [example/example_thread_interrupt_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_1.dart)
 
 ```dart
@@ -244,6 +286,15 @@ Future work() async {
     print("Thread cannot go to sleep - interrupted by main thread.");
   }
 }
+```
+
+Output:
+
+```
+Main thread calls interrupt on new thread.
+Thread is executing 'work'.
+Thread going to sleep.
+Thread cannot go to sleep - interrupted by main thread.
 ```
 
 [example/example_thread_interrupt_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_2.dart)
@@ -288,6 +339,12 @@ void workSync() {
 
   throw new ThreadInterruptException();
 }
+```
+
+Output:
+
+```
+Done
 ```
 
 [example/example_thread_interrupt_3.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_interrupt_3.dart)
@@ -336,6 +393,19 @@ Future threadJob() async {
 }
 ```
 
+Output:
+
+```
+Main thread starting
+Main thread sleeping
+Second thread starting
+Second thread acquired lock - about to wait
+Main thread acquired lock - signaling monitor
+Monitor signaled; interrupting second thread
+Main thread still owns lock...
+Second thread caught an exception: ThreadInterruptException
+```
+
 [example/example_thread_join_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_1.dart)
 
 ```dart
@@ -360,6 +430,12 @@ final int _waitTime = 1000;
 Future work() async {
   await Thread.sleep(_waitTime);
 }
+```
+
+Output:
+
+```
+New thread terminated.
 ```
 
 [example/example_thread_join_2.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_join_2.dart)
@@ -389,6 +465,15 @@ Future main() async {
   await t2.join();
   print("t2.Join() returned.");
 }
+```
+
+Output:
+
+```
+t2 is ending.
+t1 is ending.
+t1.Join() returned.
+t2.Join() returned.
 ```
 
 [example/example_thread_timer_1.dart](https://github.com/mezoni/threading/blob/master/example/example_thread_timer_1.dart)
@@ -425,5 +510,15 @@ Future work() async {
   print("Thread wake up after 1000 ms, elapsed: ${sw.elapsedMilliseconds}");
   sw.stop();
 }
+```
+
+Output:
+
+```
+Thread sleep
+ThreadTimer 100 ms, elapsed: 120
+Thread wake up after 1000 ms, elapsed: 1015
+Timer 100 ms, elapsed: 1015
+Thread terminated
 ```
 
