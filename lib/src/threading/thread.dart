@@ -133,7 +133,16 @@ class Thread {
   }
 
   /**
-   * Initiates the interruption of the [Thread].
+   * Initiates the abort of the [Thread].
+   */
+  Future abort() {
+    _current._block();
+    _current._abort(this);
+    return _current._blocking.future;
+  }
+
+  /**
+   * Initiates the interrupt of the [Thread].
    */
   Future interrupt() {
     _current._block();
@@ -167,10 +176,35 @@ class Thread {
     return "$runtimeType '$name'";
   }
 
+  void _abort(Thread thread) {
+    if (thread._zone == Zone.ROOT) {
+      _failUp(new ThreadStateError("Unable to abort the main thread"));
+    } else {
+      if (!thread._isAbortRequested && !thread._isAbortInitiated) {
+        thread._isAbortRequested = true;
+      }
+
+      if (thread.isPassive) {
+        thread._abortOrInterruptPassive();
+      }
+
+      _yieldUp();
+    }
+  }
+
+  void _abortActive() {
+    _fail(new ThreadAbortException());
+    _clearAbortRequest();
+    _isAbortInitiated = true;
+  }
+
   void _abortOrInterruptPassive() {
-    if (_isInterruptRequested) {
-      _isInterruptRequested = false;
+    if (_isAbortRequested) {
+      _injectException(new ThreadAbortException());
+      _clearAbortRequest();
+    } else if (_isInterruptRequested) {
       _injectException(new ThreadInterruptException());
+      _isInterruptRequested = false;
     }
   }
 
@@ -259,6 +293,11 @@ class Thread {
     return false;
   }
 
+  void _clearAbortRequest() {
+    _isAbortRequested = false;
+    _isInterruptRequested = false;
+  }
+
   Thread _enter() {
     var previous = _current;
     _current = this;
@@ -266,6 +305,10 @@ class Thread {
   }
 
   void _executeActive(Function callback) {
+    if (_isAbortInitiated) {
+      var x = 0;
+    }
+
     try {
       callback();
     } catch (error, stackTrace) {

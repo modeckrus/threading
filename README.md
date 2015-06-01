@@ -12,7 +12,7 @@ Software threads executed in a single isolate and at the same time provides
 behavior of the standard threads.  
 They can be called as a software emulation because they does not executed in  
 preemptive mode.  
-But on the other hand, they have only two limitation:  
+But on the other hand, they have only two limitations:  
 
 - Executed in a single isolate
 - Does not switches the context by the hardware interrupt
@@ -28,6 +28,66 @@ uniprocessor system in cooperative mode.
 
 **Examples:**
 
+[example/example_interleaved_execution.dart](https://github.com/mezoni/threading/blob/master/example/example_interleaved_execution.dart)
+
+```dart
+library threading.example.example_interleaved_execution;
+
+import "dart:async";
+
+import "package:threading/threading.dart";
+
+Future main() async {
+  await runFutures();
+  await runThreads();
+}
+
+Future runFutures() async {
+  print("Futures (linear execution)");
+  print("----------------");
+  var futures = <Future>[];
+  var numOfFutures = 3;
+  var count = 3;
+  for (var i = 0; i < numOfFutures; i++) {
+    var name = new String.fromCharCode(65 + i);
+    var thread = new Future(() async {
+      for (var j = 0; j < count; j++) {
+        await new Future.value();
+        print("$name: $j");
+      }
+    });
+
+    futures.add(thread);
+  }
+
+  await Future.wait(futures);
+}
+
+Future runThreads() async {
+  print("Threads (interleaved execution)");
+  print("----------------");
+  var threads = <Thread>[];
+  var numOfThreads = 3;
+  var count = 3;
+  for (var i = 0; i < numOfThreads; i++) {
+    var name = new String.fromCharCode(65 + i);
+    var thread = new Thread(() async {
+      for (var j = 0; j < count; j++) {
+        await new Future.value();
+        print("$name: $j");
+      }
+    });
+
+    threads.add(thread);
+    await thread.start();
+  }
+
+  for (var i = 0; i < numOfThreads; i++) {
+    await threads[i].join();
+  }
+}
+```
+
 [example/example_producer_consumer_problem.dart](https://github.com/mezoni/threading/blob/master/example/example_producer_consumer_problem.dart)
 
 ```dart
@@ -38,48 +98,42 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
-}
+  var length = 2;
+  var buffer = new _BoundedBuffer(length);
+  var total = length * 2;
+  var consumed = 0;
+  var produced = 0;
+  var threads = <Thread>[];
+  for (var i = 0; i < total; i++) {
+    var thread = new Thread(() async {
+      await buffer.put(i);
+      print("${Thread.current.name}: => $i");
+      produced++;
+    });
 
-class Example {
-  Future run() async {
-    var length = 2;
-    var buffer = new _BoundedBuffer(length);
-    var total = length * 2;
-    var consumed = 0;
-    var produced = 0;
-    var threads = <Thread>[];
-    for (var i = 0; i < total; i++) {
-      var thread = new Thread(() async {
-        await buffer.put(i);
-        print("${Thread.current.name}: => $i");
-        produced++;
-      });
-
-      thread.name = "Producer $i";
-      threads.add(thread);
-      await thread.start();
-    }
-
-    for (var i = 0; i < total; i++) {
-      var thread = new Thread(() async {
-        var x = await buffer.take();
-        print("${Thread.current.name}: <= $x");
-        consumed++;
-      });
-
-      thread.name = "Consumer $i";
-      threads.add(thread);
-      await thread.start();
-    }
-
-    for (var thread in threads) {
-      await thread.join();
-    }
-
-    print("Produced: $produced");
-    print("Consumed: $consumed");
+    thread.name = "Producer $i";
+    threads.add(thread);
+    await thread.start();
   }
+
+  for (var i = 0; i < total; i++) {
+    var thread = new Thread(() async {
+      var x = await buffer.take();
+      print("${Thread.current.name}: <= $x");
+      consumed++;
+    });
+
+    thread.name = "Consumer $i";
+    threads.add(thread);
+    await thread.start();
+  }
+
+  for (var thread in threads) {
+    await thread.join();
+  }
+
+  print("Produced: $produced");
+  print("Consumed: $consumed");
 }
 
 class _BoundedBuffer<T> {
@@ -160,40 +214,34 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
+  var thread = new Thread(work);
+  await thread.start();
+  // The following line causes an exception to be thrown
+  // in "work" if thread is currently blocked
+  // or becomes blocked in the future.
+  await thread.interrupt();
+  print("Main thread calls interrupt on new thread.");
+  // Tell newThread to go to sleep.
+  _sleepSwitch = true;
+  // Wait for new thread to end.
+  await thread.join();
 }
 
-class Example {
-  bool _sleepSwitch = false;
+bool _sleepSwitch = false;
 
-  Future run() async {
-    var thread = new Thread(work);
-    await thread.start();
-    // The following line causes an exception to be thrown
-    // in "work" if thread is currently blocked
-    // or becomes blocked in the future.
-    await thread.interrupt();
-    print("Main thread calls interrupt on new thread.");
-    // Tell newThread to go to sleep.
-    _sleepSwitch = true;
-    // Wait for new thread to end.
-    await thread.join();
+Future work() async {
+  print("Thread is executing 'work'.");
+  while (!_sleepSwitch) {
+    await Thread.sleep(0);
   }
 
-  Future work() async {
-    print("Thread is executing 'work'.");
-    while (!_sleepSwitch) {
-      await Thread.sleep(0);
-    }
-
-    try {
-      print("Thread going to sleep.");
-      // When thread goes to sleep, it is immediately
-      // woken up by a ThreadInterruptException.
-      await Thread.sleep(-1);
-    } on ThreadInterruptException catch (e) {
-      print("Thread cannot go to sleep - interrupted by main thread.");
-    }
+  try {
+    print("Thread going to sleep.");
+    // When thread goes to sleep, it is immediately
+    // woken up by a ThreadInterruptException.
+    await Thread.sleep(-1);
+  } on ThreadInterruptException catch (e) {
+    print("Thread cannot go to sleep - interrupted by main thread.");
   }
 }
 ```
@@ -208,43 +256,37 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
+  var t0 = new Thread(workAsync);
+  var t1 = new Thread(workSync);
+  await t0.start();
+  await t1.start();
+  await t0.join();
+  await t1.join();
+  print("Done");
 }
 
-class Example {
-  Future run() async {
-    var t0 = new Thread(workAsync);
-    var t1 = new Thread(workSync);
-    await t0.start();
-    await t1.start();
-    await t0.join();
-    await t1.join();
-    print("Done");
-  }
+Future workAsync() async {
+  new Future(() {
+    print("Future - should never be executed");
+  });
 
-  Future workAsync() async {
-    new Future(() {
-      print("Future - should never be executed");
-    });
+  Timer.run(() {
+    print("Timer - should never be executed");
+  });
 
-    Timer.run(() {
-      print("Timer - should never be executed");
-    });
+  throw new ThreadInterruptException();
+}
 
-    throw new ThreadInterruptException();
-  }
+void workSync() {
+  new Future(() {
+    print("Future - should never be executed");
+  });
 
-  void workSync() {
-    new Future(() {
-      print("Future - should never be executed");
-    });
+  Timer.run(() {
+    print("Timer - should never be executed");
+  });
 
-    Timer.run(() {
-      print("Timer - should never be executed");
-    });
-
-    throw new ThreadInterruptException();
-  }
+  throw new ThreadInterruptException();
 }
 ```
 
@@ -258,44 +300,38 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
+  print("Main thread starting");
+  var secondThread = new Thread(threadJob);
+  await secondThread.start();
+  print("Main thread sleeping");
+  await Thread.sleep(500);
+  await _lock.acquire();
+  try {
+    print("Main thread acquired lock - signaling monitor");
+    await _lock.signal();
+    print("Monitor signaled; interrupting second thread");
+    await secondThread.interrupt();
+    await Thread.sleep(1000);
+    print("Main thread still owns lock...");
+  } finally {
+    await _lock.release();
+  }
 }
 
-class Example {
-  Lock someLock = new Lock();
+Lock _lock = new Lock();
 
-  Future run() async {
-    print("Main thread starting");
-    var secondThread = new Thread(threadJob);
-    await secondThread.start();
-    print("Main thread sleeping");
-    await Thread.sleep(500);
-    await someLock.acquire();
+Future threadJob() async {
+  print("Second thread starting");
+  await _lock.acquire();
+  try {
+    print("Second thread acquired lock - about to wait");
     try {
-      print("Main thread acquired lock - signaling monitor");
-      await someLock.signal();
-      print("Monitor signaled; interrupting second thread");
-      await secondThread.interrupt();
-      await Thread.sleep(1000);
-      print("Main thread still owns lock...");
-    } finally {
-      await someLock.release();
+      await _lock.wait();
+    } catch (e) {
+      print("Second thread caught an exception: $e");
     }
-  }
-
-  Future threadJob() async {
-    print("Second thread starting");
-    await someLock.acquire();
-    try {
-      print("Second thread acquired lock - about to wait");
-      try {
-        await someLock.wait();
-      } catch (e) {
-        print("Second thread caught an exception: $e");
-      }
-    } finally {
-      await someLock.release();
-    }
+  } finally {
+    await _lock.release();
   }
 }
 ```
@@ -310,25 +346,19 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
+  var thread = new Thread(work);
+  await thread.start();
+  if (await thread.join(_waitTime * 2)) {
+    print("New thread terminated.");
+  } else {
+    print("Join timed out.");
+  }
 }
 
-class Example {
-  static final int waitTime = 1000;
+final int _waitTime = 1000;
 
-  Future run() async {
-    var thread = new Thread(work);
-    await thread.start();
-    if (await thread.join(waitTime * 2)) {
-      print("New thread terminated.");
-    } else {
-      print("Join timed out.");
-    }
-  }
-
-  static Future work() async {
-    await Thread.sleep(waitTime);
-  }
+Future work() async {
+  await Thread.sleep(_waitTime);
 }
 ```
 
@@ -342,28 +372,22 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
-}
+  var t1 = new Thread(() async {
+    await Thread.sleep(2000);
+    print("t1 is ending.");
+  });
 
-class Example {
-  Future run() async {
-    var t1 = new Thread(() async {
-      await Thread.sleep(2000);
-      print("t1 is ending.");
-    });
+  t1.start();
+  var t2 = new Thread(() async {
+    await Thread.sleep(1000);
+    print("t2 is ending.");
+  });
 
-    t1.start();
-    var t2 = new Thread(() async {
-      await Thread.sleep(1000);
-      print("t2 is ending.");
-    });
-
-    t2.start();
-    await t1.join();
-    print("t1.Join() returned.");
-    await t2.join();
-    print("t2.Join() returned.");
-  }
+  t2.start();
+  await t1.join();
+  print("t1.Join() returned.");
+  await t2.join();
+  print("t2.Join() returned.");
 }
 ```
 
@@ -377,35 +401,29 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
+  var thread = new Thread(work);
+  await thread.start();
+  await thread.join();
+  print("Thread terminated");
 }
 
-class Example {
-  Future run() async {
-    var thread = new Thread(work);
-    await thread.start();
-    await thread.join();
-    print("Thread terminated");
-  }
+Future work() async {
+  var sw = new Stopwatch();
+  await sw.start();
+  new Timer(new Duration(milliseconds: 100), () {
+    // This timer will sleep with thread
+    print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+  });
 
-  static Future work() async {
-    var sw = new Stopwatch();
-    await sw.start();
-    new Timer(new Duration(milliseconds: 100), () {
-      // This timer will sleep with thread
-      print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-    });
+  new ThreadTimer(new Duration(milliseconds: 100), () {
+    // This timer will be performed anyway
+    print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+  });
 
-    new ThreadTimer(new Duration(milliseconds: 100), () {
-      // This timer will be performed anyway
-      print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-    });
-
-    print("Thread sleep");
-    await Thread.sleep(1000);
-    print("Thread wake up after 1000 ms, elapsed: ${sw.elapsedMilliseconds}");
-    sw.stop();
-  }
+  print("Thread sleep");
+  await Thread.sleep(1000);
+  print("Thread wake up after 1000 ms, elapsed: ${sw.elapsedMilliseconds}");
+  sw.stop();
 }
 ```
 

@@ -8,6 +8,7 @@ Future main() async {
   await testLockAcquire();
   await testLockTryAcquire();
   await testLockWaitSignal();
+  await testThreadAbort();
   await testThreadInterrupt();
   await testThreadJoin();
   await testThreadSleep();
@@ -284,6 +285,30 @@ Future testLockWaitSignal() async {
 
     await t0.join();
     expect(value, true, reason: "Value was not changed");
+  });
+}
+
+Future testThreadAbort() async {
+  // TODO: Implement "Thread.abort()"
+  await testAsync("Thread abort", () async {
+    var thread = new Thread(() async {
+      try {
+        while (true) {
+          print(1);
+          _breakpoint();
+          await new Future.value(123);
+        }
+      } on ThreadAbortException catch (e) {
+        print("Thread aborted");
+      }
+    });
+
+    thread.name = "t0";
+    await thread.start();
+    await thread.abort();
+    await thread.join();
+
+    expect(thread.isAborted, true, reason: "Thread was not aborted");
   });
 }
 

@@ -12,7 +12,7 @@ Software threads executed in a single isolate and at the same time provides
 behavior of the standard threads.  
 They can be called as a software emulation because they does not executed in  
 preemptive mode.  
-But on the other hand, they have only two limitation:  
+But on the other hand, they have only two limitations:  
 
 - Executed in a single isolate
 - Does not switches the context by the hardware interrupt

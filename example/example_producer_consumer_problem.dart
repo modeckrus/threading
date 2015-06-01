@@ -5,48 +5,42 @@ import "dart:async";
 import "package:threading/threading.dart";
 
 Future main() async {
-  await new Example().run();
-}
+  var length = 2;
+  var buffer = new _BoundedBuffer(length);
+  var total = length * 2;
+  var consumed = 0;
+  var produced = 0;
+  var threads = <Thread>[];
+  for (var i = 0; i < total; i++) {
+    var thread = new Thread(() async {
+      await buffer.put(i);
+      print("${Thread.current.name}: => $i");
+      produced++;
+    });
 
-class Example {
-  Future run() async {
-    var length = 2;
-    var buffer = new _BoundedBuffer(length);
-    var total = length * 2;
-    var consumed = 0;
-    var produced = 0;
-    var threads = <Thread>[];
-    for (var i = 0; i < total; i++) {
-      var thread = new Thread(() async {
-        await buffer.put(i);
-        print("${Thread.current.name}: => $i");
-        produced++;
-      });
-
-      thread.name = "Producer $i";
-      threads.add(thread);
-      await thread.start();
-    }
-
-    for (var i = 0; i < total; i++) {
-      var thread = new Thread(() async {
-        var x = await buffer.take();
-        print("${Thread.current.name}: <= $x");
-        consumed++;
-      });
-
-      thread.name = "Consumer $i";
-      threads.add(thread);
-      await thread.start();
-    }
-
-    for (var thread in threads) {
-      await thread.join();
-    }
-
-    print("Produced: $produced");
-    print("Consumed: $consumed");
+    thread.name = "Producer $i";
+    threads.add(thread);
+    await thread.start();
   }
+
+  for (var i = 0; i < total; i++) {
+    var thread = new Thread(() async {
+      var x = await buffer.take();
+      print("${Thread.current.name}: <= $x");
+      consumed++;
+    });
+
+    thread.name = "Consumer $i";
+    threads.add(thread);
+    await thread.start();
+  }
+
+  for (var thread in threads) {
+    await thread.join();
+  }
+
+  print("Produced: $produced");
+  print("Consumed: $consumed");
 }
 
 class _BoundedBuffer<T> {
