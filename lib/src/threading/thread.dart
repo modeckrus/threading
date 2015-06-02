@@ -12,7 +12,9 @@ typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackT
  * yields control or it blocks.
  */
 class Thread {
-  static Thread _current = new Thread._main();
+  static Thread _current = _mainThread;
+
+  static final Thread _mainThread = new Thread._main();
 
   static final DateTime _maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, 999);
 
@@ -35,7 +37,7 @@ class Thread {
 
   bool _isInterruptRequested = false;
 
-  bool _isWakeupRequested = false;
+  bool _isYield = false;
 
   Thread _joinedThread;
 
@@ -77,7 +79,7 @@ class Thread {
   Thread._main() {
     _pendingCallbackCount++;
     _state = ThreadState.Active;
-    _zone = Zone.ROOT;
+    _zone = new _ZoneHandle(this).zone;
   }
 
   /**
@@ -177,7 +179,7 @@ class Thread {
   }
 
   void _abort(Thread thread) {
-    if (thread._zone == Zone.ROOT) {
+    if (identical(thread, _mainThread)) {
       _failUp(new ThreadStateError("Unable to abort the main thread"));
     } else {
       if (!thread._isAbortRequested && !thread._isAbortInitiated) {
@@ -192,16 +194,11 @@ class Thread {
     }
   }
 
-  void _abortActive() {
-    _fail(new ThreadAbortException());
-    _clearAbortRequest();
-    _isAbortInitiated = true;
-  }
-
   void _abortOrInterruptPassive() {
     if (_isAbortRequested) {
       _injectException(new ThreadAbortException());
       _clearAbortRequest();
+      _isAbortInitiated = true;
     } else if (_isInterruptRequested) {
       _injectException(new ThreadInterruptException());
       _isInterruptRequested = false;
@@ -256,7 +253,7 @@ class Thread {
       throw new ThreadStateError("Unable to block the thread");
     }
 
-    _blocking = new Completer();
+    _zone.run(() => _blocking = new Completer());
   }
 
   Future _broadcast(ConditionVariable monitor) {
@@ -305,12 +302,14 @@ class Thread {
   }
 
   void _executeActive(Function callback) {
-    if (_isAbortInitiated) {
-      var x = 0;
-    }
-
     try {
-      callback();
+      if (_isAbortRequested) {
+        _clearAbortRequest();
+        _isAbortInitiated = true;
+        throw new ThreadAbortException();
+      } else {
+        callback();
+      }
     } catch (error, stackTrace) {
       _zone.handleUncaughtError(error, stackTrace);
       return;
@@ -329,7 +328,7 @@ class Thread {
   }
 
   void _failUp(Object error) {
-    _isWakeupRequested = true;
+    _isYield = true;
     try {
       throw error;
     } catch (error, stackTrace) {
@@ -375,10 +374,13 @@ class Thread {
   }
 
   void _interrupt(Thread thread) {
-    if (thread._zone == Zone.ROOT) {
+    if (identical(thread, _mainThread)) {
       _failUp(new ThreadStateError("Unable to interrupt the main thread"));
     } else {
-      thread._isInterruptRequested = true;
+      if (!thread._isInterruptRequested) {
+        thread._isInterruptRequested = true;
+      }
+
       if (thread.isPassive) {
         thread._abortOrInterruptPassive();
       }
@@ -473,7 +475,9 @@ class Thread {
       _wakeupTime = now.add(duration);
     }
 
-    _wakeupTimer = new ThreadTimer(duration, _wakeup);
+
+    _wakeupTimer = _ZoneHandle._createSystemTimer(this, duration, _wakeup);
+    //_wakeupTimer = new ThreadTimer(duration, _wakeup);
     _addTimer(_wakeupTimer);
   }
 
@@ -643,7 +647,7 @@ class Thread {
   }
 
   void _yieldUp([Object value]) {
-    _isWakeupRequested = true;
+    _isYield = true;
     _blocking.complete(value);
   }
 

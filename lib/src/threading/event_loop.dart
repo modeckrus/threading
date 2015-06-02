@@ -45,6 +45,10 @@ class _EventLoop {
           done = true;
           isProductive = true;
           break;
+        } else if (thread._state == ThreadState.Terminated) {
+          var next = entry.next;
+          entry.unlink();
+          entry = next;
         } else {
           entry = entry.next;
         }
@@ -76,19 +80,19 @@ class _EventLoop {
   }
 
   void _addMicrotaskCallback(_ThreadCallback callback) {
-    var entry = new _LinkedListEntry(callback);
+    var entry = new _LinkedListEntry<_ThreadCallback>(callback);
     microtaskQueue.add(entry);
     schedule();
   }
 
   void _addTimerCallback(_ThreadCallback callback) {
-    var entry = new _LinkedListEntry(callback);
+    var entry = new _LinkedListEntry<_ThreadCallback>(callback);
     timerQueue.add(entry);
     schedule();
   }
 
   void _addWakeupCallback(_ThreadCallback callback) {
-    var entry = new _LinkedListEntry(callback);
+    var entry = new _LinkedListEntry<_ThreadCallback>(callback);
     wakeupQueue.add(entry);
     schedule();
   }

@@ -6,21 +6,21 @@ import "package:threading/threading.dart";
 
 Future main() async {
   var t0 = new Thread(workAsync);
-  var t1 = new Thread(workSync);
+  //var t1 = new Thread(workSync);
   await t0.start();
-  await t1.start();
+  //await t1.start();
   await t0.join();
-  await t1.join();
+  //await t1.join();
   print("Done");
 }
 
 Future workAsync() async {
   new Future(() {
-    print("Future - should never be executed");
+    print("Async: Future - should never be executed");
   });
 
   Timer.run(() {
-    print("Timer - should never be executed");
+    print("Async: Timer - should never be executed");
   });
 
   throw new ThreadInterruptException();
@@ -28,11 +28,11 @@ Future workAsync() async {
 
 void workSync() {
   new Future(() {
-    print("Future - should never be executed");
+    print("Sync: Future - should never be executed");
   });
 
   Timer.run(() {
-    print("Timer - should never be executed");
+    print("Sync: Timer - should never be executed");
   });
 
   throw new ThreadInterruptException();

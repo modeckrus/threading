@@ -308,21 +308,21 @@ import "package:threading/threading.dart";
 
 Future main() async {
   var t0 = new Thread(workAsync);
-  var t1 = new Thread(workSync);
+  //var t1 = new Thread(workSync);
   await t0.start();
-  await t1.start();
+  //await t1.start();
   await t0.join();
-  await t1.join();
+  //await t1.join();
   print("Done");
 }
 
 Future workAsync() async {
   new Future(() {
-    print("Future - should never be executed");
+    print("Async: Future - should never be executed");
   });
 
   Timer.run(() {
-    print("Timer - should never be executed");
+    print("Async: Timer - should never be executed");
   });
 
   throw new ThreadInterruptException();
@@ -330,11 +330,11 @@ Future workAsync() async {
 
 void workSync() {
   new Future(() {
-    print("Future - should never be executed");
+    print("Sync: Future - should never be executed");
   });
 
   Timer.run(() {
-    print("Timer - should never be executed");
+    print("Sync: Timer - should never be executed");
   });
 
   throw new ThreadInterruptException();
@@ -430,6 +430,7 @@ final int _waitTime = 1000;
 Future work() async {
   await Thread.sleep(_waitTime);
 }
+
 ```
 
 Output:
@@ -495,15 +496,17 @@ Future main() async {
 Future work() async {
   var sw = new Stopwatch();
   await sw.start();
-  new Timer(new Duration(milliseconds: 100), () {
-    // This timer will sleep with thread
-    print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-  });
+  for (var i = 0; i < 2; i++) {
+    new Timer(new Duration(milliseconds: 100), () {
+      // This timer will sleep with thread
+      print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+    });
 
-  new ThreadTimer(new Duration(milliseconds: 100), () {
-    // This timer will be performed anyway
-    print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-  });
+    new ThreadTimer(new Duration(milliseconds: 100), () {
+      // This timer will be performed anyway
+      print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+    });
+  }
 
   print("Thread sleep");
   await Thread.sleep(1000);
@@ -517,7 +520,9 @@ Output:
 ```
 Thread sleep
 ThreadTimer 100 ms, elapsed: 120
+ThreadTimer 100 ms, elapsed: 125
 Thread wake up after 1000 ms, elapsed: 1015
+Timer 100 ms, elapsed: 1015
 Timer 100 ms, elapsed: 1015
 Thread terminated
 ```

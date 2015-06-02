@@ -1,6 +1,11 @@
+## 0.0.7
+
+- Minor bug fixes
+- Minor improvements in the scheduling and interleaving of the threads
+
 ## 0.0.6
 
-- Bug fixes 
+- Bug fixes
 
 ## 0.0.5
 

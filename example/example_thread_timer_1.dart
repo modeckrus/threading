@@ -14,15 +14,17 @@ Future main() async {
 Future work() async {
   var sw = new Stopwatch();
   await sw.start();
-  new Timer(new Duration(milliseconds: 100), () {
-    // This timer will sleep with thread
-    print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-  });
+  for (var i = 0; i < 2; i++) {
+    new Timer(new Duration(milliseconds: 100), () {
+      // This timer will sleep with thread
+      print("Timer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+    });
 
-  new ThreadTimer(new Duration(milliseconds: 100), () {
-    // This timer will be performed anyway
-    print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
-  });
+    new ThreadTimer(new Duration(milliseconds: 100), () {
+      // This timer will be performed anyway
+      print("ThreadTimer 100 ms, elapsed: ${sw.elapsedMilliseconds}");
+    });
+  }
 
   print("Thread sleep");
   await Thread.sleep(1000);
