@@ -16,50 +16,60 @@ class _EventLoop {
     var done = false;
     _LinkedListEntry<_ThreadCallback> entry;
     var isProductive = false;
-    for (var step = 0; step < 3; step++) {
-      LinkedList queue;
-      switch (step) {
-        case 0:
-          queue = wakeupQueue;
-          break;
-        case 1:
-          queue = microtaskQueue;
-          break;
-        case 2:
-          queue = timerQueue;
-          break;
-      }
+    if (!wakeupQueue.isEmpty) {
+      entry = wakeupQueue.first;
+      entry.unlink();
+      var callback = entry.element;
+      var thread = callback.thread;
+      thread._scheduledCallbackCount--;
+      thread._zone.runGuarded(callback.function);
+      done = true;
+      isProductive = true;
+    }
 
-      if (queue.isEmpty) {
-        continue;
-      }
-
-      entry = queue.first;
-      while (true) {
-        var callback = entry.element;
-        var thread = callback.thread;
-        if (thread._state == ThreadState.Active) {
-          entry.unlink();
-          thread._scheduledCallbackCount--;
-          thread._executeActive(callback.function);
-          done = true;
-          isProductive = true;
-          break;
-        } else if (thread._state == ThreadState.Terminated) {
-          var next = entry.next;
-          entry.unlink();
-          entry = next;
-        } else {
-          entry = entry.next;
+    if (!done) {
+      for (var step = 0; step < 2; step++) {
+        LinkedList queue;
+        switch (step) {
+          case 0:
+            queue = microtaskQueue;
+            break;
+          case 1:
+            queue = timerQueue;
+            break;
         }
 
-        if (entry == null) {
+        if (queue.isEmpty) {
+          continue;
+        }
+
+        entry = queue.first;
+        while (true) {
+          var callback = entry.element;
+          var thread = callback.thread;
+          if (thread._state == ThreadState.Active) {
+            entry.unlink();
+            thread._scheduledCallbackCount--;
+            thread._executeActive(callback.function);
+            done = true;
+            isProductive = true;
+            break;
+          } else if (thread._state == ThreadState.Terminated) {
+            var next = entry.next;
+            entry.unlink();
+            entry = next;
+          } else {
+            entry = entry.next;
+          }
+
+          if (entry == null) {
+            break;
+          }
+        }
+
+        if (done) {
           break;
         }
-      }
-
-      if (done) {
-        break;
       }
     }
 

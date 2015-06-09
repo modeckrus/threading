@@ -132,12 +132,13 @@ class _ZoneHandle {
 
   // TODO: remove
   void _scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
+    // TODO: Remove
     var isYield = thread._isYield;
     thread._isYield = false;
     void callback() {
+      _processPendingZoneTasks();
       thread._pendingCallbackCount--;
       thread._scheduledCallbackCount++;
-      _processPendingZoneTasks();
       var callback = new _ThreadCallback(thread, f);
       if (isYield) {
         _EventLoop.current._addWakeupCallback(callback);
@@ -154,11 +155,15 @@ class _ZoneHandle {
     _LinkedListEntry<_TimedCallback> entry;
     _isSystemTimer = true;
     var date = new DateTime.now().add(duration);
+    var callback = new _ThreadCallback(thread, function);
     Timer timer;
     void action() {
+      // TODO:
+      thread._scheduledCallbackCount++;
       if (timer.isActive) {
         timer.cancel();
-        function();
+        //function();
+        _EventLoop.current._addWakeupCallback(callback);
       } else {
         // TODO: Implement timer removal on cancel
         //throw null;
@@ -166,13 +171,13 @@ class _ZoneHandle {
     }
 
     timer = thread._zone.createTimer(duration, () {
-      thread._scheduledCallbackCount--;
+      //thread._scheduledCallbackCount--;
       entry.unlink();
-      function();
+      //function();
+      _EventLoop.current._addWakeupCallback(callback);
     });
 
-    var callback = new _TimedCallback(date, action);
-    entry = new _LinkedListEntry<_TimedCallback>(callback);
+    entry = new _LinkedListEntry<_TimedCallback>(new _TimedCallback(date, action));
     if (_timedCallbacks.isEmpty) {
       _timedCallbacks.add(entry);
     } else {

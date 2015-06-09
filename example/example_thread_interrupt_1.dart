@@ -23,6 +23,7 @@ bool _sleepSwitch = false;
 Future work() async {
   print("Thread is executing 'work'.");
   while (!_sleepSwitch) {
+    print("work");
     await Thread.sleep(0);
   }
 

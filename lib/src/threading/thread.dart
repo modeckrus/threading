@@ -37,6 +37,7 @@ class Thread {
 
   bool _isInterruptRequested = false;
 
+  // TODO: Remove
   bool _isYield = false;
 
   Thread _joinedThread;
@@ -328,7 +329,8 @@ class Thread {
   }
 
   void _failUp(Object error) {
-    _isYield = true;
+    // TODO: Remove
+    //_isYield = true;
     try {
       throw error;
     } catch (error, stackTrace) {
@@ -647,7 +649,8 @@ class Thread {
   }
 
   void _yieldUp([Object value]) {
-    _isYield = true;
+    // TODO:
+    //_isYield = true;
     _blocking.complete(value);
   }
 
