@@ -1,3 +1,7 @@
+## 0.0.9
+
+- Adaptation to Dart 2.0
+
 ## 0.0.8
 
 - Minor bug fixes

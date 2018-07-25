@@ -12,6 +12,7 @@ part "src/threading/thread.dart";
 part "src/threading/thread_abort_exception.dart";
 part "src/threading/thread_callback.dart";
 part "src/threading/thread_interrupt_exception.dart";
+part "src/threading/thread_start.dart";
 part "src/threading/thread_state.dart";
 part "src/threading/thread_state_error.dart";
 part "src/threading/thread_timer.dart";

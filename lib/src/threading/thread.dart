@@ -1,6 +1,7 @@
 part of threading;
 
-typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackTrace);
+typedef dynamic _UncaughtErrorHandler(
+    Zone zone, Object error, StackTrace stackTrace);
 
 /**
  * The [Thread] of execution is the smallest sequence of programmed
@@ -16,7 +17,8 @@ class Thread {
 
   static final Thread _mainThread = new Thread._main();
 
-  static final DateTime _maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, 999);
+  static final DateTime _maxDateTime =
+      new DateTime(9999, 12, 31, 23, 59, 59, 999);
 
   static Thread get current {
     return _current;
@@ -27,7 +29,7 @@ class Thread {
    */
   String name;
 
-  Completer _blocking;
+  Completer<bool> _blocking;
 
   Function _computation;
 
@@ -254,7 +256,7 @@ class Thread {
       throw new ThreadStateError("Unable to block the thread");
     }
 
-    _zone.run(() => _blocking = new Completer());
+    _zone.run(() => _blocking = new Completer<bool>());
   }
 
   Future _broadcast(ConditionVariable monitor) {
@@ -317,7 +319,9 @@ class Thread {
     }
 
     if (_state != ThreadState.Terminated && _state == ThreadState.Active) {
-      if (_pendingCallbackCount == 0 && _scheduledCallbackCount == 0 && _timers.isEmpty) {
+      if (_pendingCallbackCount == 0 &&
+          _scheduledCallbackCount == 0 &&
+          _timers.isEmpty) {
         _terminate();
       }
     }
@@ -338,7 +342,8 @@ class Thread {
     }
   }
 
-  dynamic _handleUncaughtError(Zone zone, Object error, StackTrace stackTrace, _UncaughtErrorHandler handleUncaughtError) {
+  dynamic _handleUncaughtError(Zone zone, Object error, StackTrace stackTrace,
+      _UncaughtErrorHandler handleUncaughtError) {
     _terminate();
     if (!(error is ThreadAbortException || error is ThreadInterruptException)) {
       handleUncaughtError(zone, error, stackTrace);
@@ -350,12 +355,12 @@ class Thread {
   void _init(Object parameter) {
     Function microtask;
     if (_computation is ZoneCallback) {
-      microtask = _zone.bindCallback(_computation);
+      microtask = _zone.bindCallback(() => _computation());
     } else {
       microtask = _zone.bindCallback(() => _computation(parameter));
     }
 
-    _zone.scheduleMicrotask(microtask);
+    _zone.scheduleMicrotask(() => microtask());
   }
 
   void _injectException(Object error) {
@@ -477,7 +482,6 @@ class Thread {
       _wakeupTime = now.add(duration);
     }
 
-
     _wakeupTimer = _ZoneHandle._createSystemTimer(this, duration, _wakeup);
     //_wakeupTimer = new ThreadTimer(duration, _wakeup);
     _addTimer(_wakeupTimer);
@@ -556,7 +560,7 @@ class Thread {
     _isInterruptRequested = false;
   }
 
-  Future _tryAcquire(ConditionVariable monitor, int timeout) {
+  Future<bool> _tryAcquire(ConditionVariable monitor, int timeout) {
     _block();
     _tryAcquire_(monitor, timeout);
     return _blocking.future;
@@ -588,7 +592,7 @@ class Thread {
     monitor._lockOwner = null;
   }
 
-  Future _wait(ConditionVariable monitor, int timeout) {
+  Future<bool> _wait(ConditionVariable monitor, int timeout) {
     _block();
     _wait_(monitor, timeout);
     return _blocking.future;
@@ -648,7 +652,7 @@ class Thread {
     }
   }
 
-  void _yieldUp([Object value]) {
+  void _yieldUp([bool value]) {
     // TODO:
     //_isYield = true;
     _blocking.complete(value);

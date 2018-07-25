@@ -3,11 +3,14 @@ part of threading;
 class _EventLoop {
   static final _EventLoop current = new _EventLoop();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> microtaskQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> microtaskQueue =
+      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> timerQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> timerQueue =
+      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> wakeupQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> wakeupQueue =
+      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
   bool _isScheduled = false;
 
@@ -22,14 +25,14 @@ class _EventLoop {
       var callback = entry.element;
       var thread = callback.thread;
       thread._scheduledCallbackCount--;
-      thread._zone.runGuarded(callback.function);
+      thread._zone.runGuarded(() => callback.function());
       done = true;
       isProductive = true;
     }
 
     if (!done) {
       for (var step = 0; step < 2; step++) {
-        LinkedList queue;
+        LinkedList<_LinkedListEntry<_ThreadCallback>> queue;
         switch (step) {
           case 0:
             queue = microtaskQueue;
@@ -47,7 +50,17 @@ class _EventLoop {
         while (true) {
           var callback = entry.element;
           var thread = callback.thread;
-          if (thread._state == ThreadState.Active) {
+          if (step == 0 &&
+              (thread._state == ThreadState.Active ||
+                  thread._state == ThreadState.Sleeping)) {
+            entry.unlink();
+            thread._scheduledCallbackCount--;
+            thread._executeActive(callback.function);
+            done = true;
+            isProductive = true;
+            break;
+          }
+          if (step == 1 && thread._state == ThreadState.Active) {
             entry.unlink();
             thread._scheduledCallbackCount--;
             thread._executeActive(callback.function);
@@ -74,7 +87,9 @@ class _EventLoop {
     }
 
     if (isProductive) {
-      if (!microtaskQueue.isEmpty || !timerQueue.isEmpty || !wakeupQueue.isEmpty) {
+      if (!microtaskQueue.isEmpty ||
+          !timerQueue.isEmpty ||
+          !wakeupQueue.isEmpty) {
         schedule();
       }
     }
@@ -86,7 +101,7 @@ class _EventLoop {
     }
 
     _isScheduled = true;
-    Zone.ROOT.scheduleMicrotask(loop);
+    Zone.root.scheduleMicrotask(loop);
   }
 
   void _addMicrotaskCallback(_ThreadCallback callback) {

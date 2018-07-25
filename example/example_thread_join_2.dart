@@ -10,13 +10,13 @@ Future main() async {
     print("t1 is ending.");
   });
 
-  t1.start();
+  await t1.start();
   var t2 = new Thread(() async {
     await Thread.sleep(1000);
     print("t2 is ending.");
   });
 
-  t2.start();
+  await t2.start();
   await t1.join();
   print("t1.Join() returned.");
   await t2.join();

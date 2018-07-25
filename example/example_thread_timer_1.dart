@@ -13,7 +13,7 @@ Future main() async {
 
 Future work() async {
   var sw = new Stopwatch();
-  await sw.start();
+  sw.start();
   for (var i = 0; i < 2; i++) {
     new Timer(new Duration(milliseconds: 100), () {
       // This timer will sleep with thread

@@ -19,6 +19,10 @@ class _Timer implements Timer {
     return _timer.isActive;
   }
 
+  int get tick {
+    return _timer.tick;
+  }
+
   void cancel() {
     if (_timer.isActive) {
       _thread._pendingCallbackCount--;

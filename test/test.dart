@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:io";
 
 import 'package:threading/threading.dart';
+import 'package:test/test.dart';
 
 Future main() async {
   await testConditionVariable();
@@ -20,12 +21,6 @@ int _failed = 0;
 
 int _passed = 0;
 
-void expect(Object actual, Object expected, {String reason}) {
-  if (actual != expected) {
-    throw new _TestFailure(actual, expected, reason);
-  }
-}
-
 void report() {
   var total = _passed + _failed;
   if (_passed != 0) {
@@ -37,30 +32,11 @@ void report() {
   }
 }
 
-Future testAsync(String name, test()) async {
-  var success = true;
-  try {
-    await test();
-  } on _TestFailure catch (e) {
-    stdout.writeln(e);
-    success = false;
-  } catch (e) {
-    stdout.write("Exception: ");
-    stdout.writeln(e);
-    success = false;
-  } finally {
-    if (success) {
-      stdout.writeln("PASS: \"$name\"");
-      _passed++;
-    } else {
-      stdout.writeln("FAIL: \"$name\"");
-      _failed++;
-    }
-  }
-}
+Future testAsync(String name, f()) async => test(name, f);
 
 Future testConditionVariable() async {
-  await testAsync("Condition variable (many producers, one consumer)", () async {
+  await testAsync("Condition variable (many producers, one consumer)",
+      () async {
     var length = 2;
     var buffer = new _BoundedBuffer(length);
     var total = length * 2;
@@ -79,7 +55,7 @@ Future testConditionVariable() async {
 
     var consumer = new Thread(() async {
       for (var i = 0; i < total; i++) {
-        var x = await buffer.take();
+        await buffer.take();
         consumed++;
       }
     });
@@ -94,7 +70,8 @@ Future testConditionVariable() async {
     expect(consumed, total, reason: "Wrong number of consumed items");
   });
 
-  await testAsync("Condition variable (one producer, many consumers)", () async {
+  await testAsync("Condition variable (one producer, many consumers)",
+      () async {
     var length = 2;
     var buffer = new _BoundedBuffer(length);
     var total = length * 2;
@@ -103,7 +80,7 @@ Future testConditionVariable() async {
     var threads = <Thread>[];
     for (var i = 0; i < total; i++) {
       var thread = new Thread(() async {
-        var x = await buffer.take();
+        await buffer.take();
         consumed++;
       });
 
@@ -328,8 +305,11 @@ Future testThreadInterrupt() async {
     var value = false;
     Timer timer;
     Future work() async {
-      timer = new Timer.periodic(new Duration(milliseconds: 100), (t) => value = true);
-      await Thread.sleep(500);
+      timer = new Timer.periodic(
+          new Duration(milliseconds: 100), (t) => value = true);
+      while (true) {
+        await Thread.sleep(500);
+      }
     }
 
     var t0 = new Thread(work);
@@ -340,7 +320,8 @@ Future testThreadInterrupt() async {
     expect(timer.isActive, false, reason: "Timer still active");
   });
 
-  await testAsync("Interrupt thread (catch ThreadInterruptException)", () async {
+  await testAsync("Interrupt thread (catch ThreadInterruptException)",
+      () async {
     var value = 0;
     ThreadInterruptException exception;
     Future work() async {
@@ -359,7 +340,8 @@ Future testThreadInterrupt() async {
     await t0.interrupt();
     await t0.join();
     expect(value, 2, reason: "Thread was interrupted");
-    expect(exception is ThreadInterruptException, true, reason: "ThreadInterruptException was not catched");
+    expect(exception is ThreadInterruptException, true,
+        reason: "ThreadInterruptException was not catched");
   });
 
   await testAsync("Interrupt thread (itself)", () async {
@@ -383,7 +365,7 @@ Future testThreadInterrupt() async {
       try {
         // Sleep infinitely
         await Thread.sleep(-1);
-      } on ThreadInterruptException catch (e) {
+      } on ThreadInterruptException {
         value = true;
       }
     }
@@ -395,7 +377,8 @@ Future testThreadInterrupt() async {
     await t0.interrupt();
     await t0.join();
     expect(value, true, reason: "Value not was changed");
-    expect(state, ThreadState.Sleeping, reason: "Thead was not in passive state");
+    expect(state, ThreadState.Sleeping,
+        reason: "Thead was not in passive state");
   });
 }
 
@@ -466,7 +449,8 @@ Future testThreadSleep() async {
       await thread.join();
     }
 
-    expect(value, count + numberOfThreads - 1, reason: "Incorrect number of iterations");
+    expect(value, count + numberOfThreads - 1,
+        reason: "Incorrect number of iterations");
   });
 
   await testAsync("Sleep thread (sleep in timers)", () async {
@@ -504,10 +488,6 @@ Future testThreadTimer() async {
     await Thread.sleep(1000);
     expect(value, true, reason: "Value was not changed by thread timer");
   });
-}
-
-void _breakpoint() {
-  var x = 0;
 }
 
 class _BoundedBuffer<T> {
@@ -570,26 +550,5 @@ class _BoundedBuffer<T> {
     } finally {
       await _lock.release();
     }
-  }
-}
-
-class _TestFailure {
-  final Object actual;
-
-  final Object expected;
-
-  final String reason;
-
-  _TestFailure(this.actual, this.expected, this.reason);
-
-  String toString() {
-    var sb = new StringBuffer();
-    sb.writeln("actual: $actual");
-    sb.writeln("expected: $expected");
-    if (reason != null) {
-      sb.writeln("reason: $reason");
-    }
-
-    return sb.toString();
   }
 }

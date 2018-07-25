@@ -53,7 +53,7 @@ class Lock {
    *  [int] [timeout]
    *  The number of milliseconds to wait for the lock.
    */
-  Future tryAcquire([int timeout]) {
+  Future<bool> tryAcquire([int timeout]) {
     return Thread._current._tryAcquire(_monitor, timeout);
   }
 

@@ -19,4 +19,3 @@ final int _waitTime = 1000;
 Future work() async {
   await Thread.sleep(_waitTime);
 }
-

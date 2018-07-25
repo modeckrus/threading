@@ -8,7 +8,7 @@ import "package:path/path.dart" as lib_path;
 
 void main(List<String> args) {
   // Change directory to root
-  FileUtils.chdir("..");
+  FileUtils.chdir("..");  
 
   var readmeFiles = <String>[];
   readmeFiles.add("tool/README.md.in");
@@ -39,7 +39,8 @@ void main(List<String> args) {
     sources.removeAt(0);
     for (var filename in sources) {
       var text = new File(filename).readAsStringSync();
-      template = template + "[$filename](https://github.com/mezoni/threading/blob/master/$filename)\n\n";
+      template = template +
+          "[$filename](https://github.com/mezoni/threading/blob/master/$filename)\n\n";
       template = template + "```dart\n";
       template = template + text;
       template = template + "```\n\n";
@@ -65,8 +66,9 @@ void main(List<String> args) {
     return exec("git", ["add", "--all"]);
   }, description: "git add --all");
 
-  target("git:commit", [CHANGELOG_MD, README_MD, "git:add"], (Target t, Map args) {
-    var message = args["m"];
+  target("git:commit", [CHANGELOG_MD, README_MD, "git:add"],
+      (Target t, Map args) {
+    var message = args["m"].toString();
     if (message == null || message.isEmpty) {
       print("Please, specify the `commit` message with --m option");
       return -1;
@@ -89,7 +91,7 @@ void main(List<String> args) {
   }, description: "git push origin master");
 
   target("log:changes", [], (Target t, Map args) {
-    var message = args["m"];
+    var message = args["m"].toString();
     if (message == null || message.isEmpty) {
       print("Please, specify the `message` with --m option");
       return -1;
@@ -98,9 +100,11 @@ void main(List<String> args) {
     logChanges(message);
   }, description: "log changes, --m message", reusable: true);
 
-  target("prj:changelog", [CHANGELOG_MD], null, description: "generate '$CHANGELOG_MD'", reusable: true);
+  target("prj:changelog", [CHANGELOG_MD], null,
+      description: "generate '$CHANGELOG_MD'", reusable: true);
 
-  target("prj:readme", [README_MD], null, description: "generate '$README_MD'", reusable: true);
+  target("prj:readme", [README_MD], null,
+      description: "generate '$README_MD'", reusable: true);
 
   target("prj:version", [], (Target t, Map args) {
     print("Version: ${getVersion()}");
@@ -111,13 +115,18 @@ void main(List<String> args) {
 
 const String CHANGE_LOG = "tool/change.log";
 const String CHANGELOG_MD = "CHANGELOG.md";
-const String EXAMPLE_THREAD_INTERRUPT_1_DART = "example/example_thread_interrupt_1.dart";
-const String EXAMPLE_THREAD_INTERRUPT_2_DART = "example/example_thread_interrupt_2.dart";
-const String EXAMPLE_THREAD_INTERRUPT_3_DART = "example/example_thread_interrupt_3.dart";
+const String EXAMPLE_THREAD_INTERRUPT_1_DART =
+    "example/example_thread_interrupt_1.dart";
+const String EXAMPLE_THREAD_INTERRUPT_2_DART =
+    "example/example_thread_interrupt_2.dart";
+const String EXAMPLE_THREAD_INTERRUPT_3_DART =
+    "example/example_thread_interrupt_3.dart";
 const String EXAMPLE_THREAD_JOIN_1_DART = "example/example_thread_join_1.dart";
 const String EXAMPLE_THREAD_JOIN_2_DART = "example/example_thread_join_2.dart";
-const String EXAMPLE_THREAD_TIMER_1_DART = "example/example_thread_timer_1.dart";
-const String EXAMPLE_PRODUCER_CONSUMER_PROBLEM_DART = "example/example_producer_consumer_problem.dart";
+const String EXAMPLE_THREAD_TIMER_1_DART =
+    "example/example_thread_timer_1.dart";
+const String EXAMPLE_PRODUCER_CONSUMER_PROBLEM_DART =
+    "example/example_producer_consumer_problem.dart";
 
 const String PUBSPEC_YAML = "pubspec.yaml";
 const String README_MD = "README.md";
@@ -162,12 +171,12 @@ String incrementVersion(String version) {
     return version;
   }
 
-  var patch = int.parse(parts[2], onError: (x) => null);
+  var patch = int.tryParse(parts[2]);
   if (patch == null) {
     return version;
   }
 
-  parts[2] = ++patch;
+  parts[2] = "${++patch}";
   parts.length = 3;
   return parts.join(".");
 }
@@ -180,7 +189,7 @@ void logChanges(String message) {
   FileUtils.touch([CHANGE_LOG], create: true);
   var file = new File(CHANGE_LOG);
   var length = file.lengthSync();
-  var fp = file.openSync(mode: FileMode.APPEND);
+  var fp = file.openSync(mode: FileMode.append);
   var sb = new StringBuffer();
   if (length != 0) {
     sb.writeln();

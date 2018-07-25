@@ -8,3 +8,4 @@
 0.0.7 Minor bug fixes
 0.0.7 Minor improvements in the scheduling and interleaving of the threads
 0.0.8 Minor bug fixes
+0.0.9 Adaptation to Dart 2.0
