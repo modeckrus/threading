@@ -9,7 +9,7 @@ Future main() async {
   await testLockAcquire();
   await testLockTryAcquire();
   await testLockWaitSignal();
-  //await testThreadAbort();
+  await testThreadAbort();
   await testThreadInterrupt();
   await testThreadJoin();
   await testThreadSleep();

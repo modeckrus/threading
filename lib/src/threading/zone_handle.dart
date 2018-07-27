@@ -18,11 +18,8 @@ class _ZoneHandle {
     zone = Zone.root.fork(specification: _createSpecification());
   }
 
-  Timer _createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone,
-      Duration period, void f(Timer timer)) {
-    _log("createPeriodicTimer", f);
-    void callback(Timer timer) {
-      _log("createPeriodicTimer callback", f);
+  Timer _createPeriodicTimer(Zone self, ZoneDelegate parent, Zone zone, Duration period, void f(Timer timer)) {    
+    void callback(Timer timer) {      
       var callback = new _ThreadCallback(thread, () => f(timer));
       thread._scheduledCallbackCount++;
       _EventLoop.current._addTimerCallback(callback);
@@ -52,14 +49,11 @@ class _ZoneHandle {
         scheduleMicrotask: _scheduleMicrotask);
   }
 
-  Timer _createTimer(
-      Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) {
-    _log("createTimer", f);
+  Timer _createTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) {    
     var isSystemTimer = _isSystemTimer;
     _isSystemTimer = false;
     Timer timer;
-    void callback() {
-      _log("createTimer callback", f);
+    void callback() {      
       thread._pendingCallbackCount--;
       thread._scheduledCallbackCount++;
       thread._timers.remove(timer);
@@ -78,20 +72,16 @@ class _ZoneHandle {
     return timer;
   }
 
-  AsyncError _errorCallback(Zone self, ZoneDelegate parent, Zone zone,
-      Object error, StackTrace stackTrace) {
+  AsyncError _errorCallback(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace) {
     return parent.errorCallback(zone, error, stackTrace);
   }
 
-  Zone _fork(Zone self, ZoneDelegate parent, Zone zone,
-      ZoneSpecification specification, Map zoneValues) {
+  Zone _fork(Zone self, ZoneDelegate parent, Zone zone, ZoneSpecification specification, Map zoneValues) {
     return parent.fork(Zone.root, specification, zoneValues);
   }
 
-  dynamic _handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone,
-      Object error, StackTrace stackTrace) {
-    return thread._handleUncaughtError(
-        zone, error, stackTrace, parent.handleUncaughtError);
+  dynamic _handleUncaughtError(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace) {
+    return thread._handleUncaughtError(zone, error, stackTrace, parent.handleUncaughtError);
   }
 
   void _print(Zone self, ZoneDelegate parent, Zone zone, String line) {
@@ -99,15 +89,15 @@ class _ZoneHandle {
   }
 
   ZoneBinaryCallback<R, T1, T2> _registerBinaryCallback<R, T1, T2>(
-      Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2)) {
-    _log("registerBinaryCallback", f);
-    R callback(T1 arg1, T2 arg2) {
-      _log("registerBinaryCallback callback", f);
+      Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2)) {    
+    R callback(T1 arg1, T2 arg2) {      
       Thread previous;
       try {
         previous = thread._enter();
+        thread._beforeCallback();
         return f(arg1, arg2);
       } finally {
+        thread._afterCallback();
         thread._leave(previous);
       }
     }
@@ -115,16 +105,15 @@ class _ZoneHandle {
     return parent.registerBinaryCallback(zone, callback);
   }
 
-  ZoneCallback<R> _registerCallback<R>(
-      Zone self, ZoneDelegate parent, Zone zone, R f()) {
-    _log("registerCallback", f);
-    R callback() {
-      _log("registerCallback callback", f);
+  ZoneCallback<R> _registerCallback<R>(Zone self, ZoneDelegate parent, Zone zone, R f()) {    
+    R callback() {      
       Thread previous;
       try {
         previous = thread._enter();
+        thread._beforeCallback();
         return f();
       } finally {
+        thread._afterCallback();
         thread._leave(previous);
       }
     }
@@ -132,16 +121,15 @@ class _ZoneHandle {
     return parent.registerCallback(zone, callback);
   }
 
-  ZoneUnaryCallback<R, T> _registerUnaryCallback<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R f(T arg)) {
-    _log("registerUnaryCallback", f);
-    R callback(T arg) {
-      _log("registerUnaryCallback callback", f);
+  ZoneUnaryCallback<R, T> _registerUnaryCallback<R, T>(Zone self, ZoneDelegate parent, Zone zone, R f(T arg)) {    
+    R callback(T arg) {      
       Thread previous;
       try {
         previous = thread._enter();
+        thread._beforeCallback();
         return f(arg);
       } finally {
+        thread._afterCallback();
         thread._leave(previous);
       }
     }
@@ -154,25 +142,21 @@ class _ZoneHandle {
   }
 
   // TODO: remove
-  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone,
-      R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
+  R _runBinary<R, T1, T2>(Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2), T1 arg1, T2 arg2) {
     return parent.runBinary<R, T1, T2>(zone, f, arg1, arg2);
   }
 
   // TODO: remove
-  R _runUnary<R, T>(
-      Zone self, ZoneDelegate parent, Zone zone, R f(T arg), T arg) {
+  R _runUnary<R, T>(Zone self, ZoneDelegate parent, Zone zone, R f(T arg), T arg) {
     return parent.runUnary<R, T>(zone, f, arg);
   }
 
   // TODO: remove
   void _scheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
-    // TODO: Remove
-    _log("scheduleMicrotask", f);
+    // TODO: Remove    
     var isYield = thread._isYield;
     thread._isYield = false;
-    void callback() {
-      _log("scheduleMicrotask callback", f);
+    void callback() {      
       _processPendingZoneTasks();
       thread._pendingCallbackCount--;
       thread._scheduledCallbackCount++;
@@ -188,21 +172,17 @@ class _ZoneHandle {
     parent.scheduleMicrotask(zone, callback);
   }
 
-  static Timer _createSystemTimer(
-      Thread thread, Duration duration, Function function) {
-    _log("createSystemTimer", function);
+  static Timer _createSystemTimer(Thread thread, Duration duration, Function function) {    
     _LinkedListEntry<_TimedCallback> entry;
     _isSystemTimer = true;
     var date = new DateTime.now().add(duration);
-    void f() {
-      _log("createSystemTimer f", function);
+    void f() {      
       return function();
     }
 
     var callback = new _ThreadCallback(thread, f);
     Timer timer;
-    void action() {
-      _log("createSystemTimer action", function);
+    void action() {      
       // TODO:
       thread._scheduledCallbackCount++;
       if (timer.isActive) {
@@ -222,8 +202,7 @@ class _ZoneHandle {
       _EventLoop.current._addWakeupCallback(callback);
     });
 
-    entry =
-        new _LinkedListEntry<_TimedCallback>(new _TimedCallback(date, action));
+    entry = new _LinkedListEntry<_TimedCallback>(new _TimedCallback(date, action));
     if (_timedCallbacks.isEmpty) {
       _timedCallbacks.add(entry);
     } else {
@@ -272,18 +251,5 @@ class _ZoneHandle {
         break;
       }
     }
-  }
-
-  static Map<int, int> _map = <int, int>{};
-  static int _index = 0;
-
-  static void _log(String message, Object o) {
-    var i = _map[o.hashCode];
-    if (i == null) {
-      i = _index++;
-      _map[o.hashCode] = i;
-    }
-
-    //print(new DateTime.now().toString() + ": " +  i.toString() + ": " + message + " " +  o.hashCode.toString());
-  }
+  }  
 }

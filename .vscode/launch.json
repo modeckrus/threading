@@ -15,6 +15,12 @@
             "program": "test/test.dart",
             "request": "launch",
             "type": "dart"
+        },
+        {
+            "name": "Test 2",
+            "program": "test/test2.dart",
+            "request": "launch",
+            "type": "dart"
         }
     ]
 }

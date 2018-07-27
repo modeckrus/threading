@@ -3,14 +3,11 @@ part of threading;
 class _EventLoop {
   static final _EventLoop current = new _EventLoop();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> microtaskQueue =
-      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> microtaskQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> timerQueue =
-      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> timerQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
-  LinkedList<_LinkedListEntry<_ThreadCallback>> wakeupQueue =
-      new LinkedList<_LinkedListEntry<_ThreadCallback>>();
+  LinkedList<_LinkedListEntry<_ThreadCallback>> wakeupQueue = new LinkedList<_LinkedListEntry<_ThreadCallback>>();
 
   bool _isScheduled = false;
 
@@ -50,24 +47,16 @@ class _EventLoop {
         while (true) {
           var callback = entry.element;
           var thread = callback.thread;
-          if (step == 0 &&
-              (thread._state == ThreadState.Active ||
-                  thread._state == ThreadState.Sleeping)) {
+          if (thread._state == ThreadState.Active) {
             entry.unlink();
             thread._scheduledCallbackCount--;
             thread._executeActive(callback.function);
             done = true;
             isProductive = true;
             break;
-          }
-          if (step == 1 && thread._state == ThreadState.Active) {
-            entry.unlink();
-            thread._scheduledCallbackCount--;
-            thread._executeActive(callback.function);
-            done = true;
-            isProductive = true;
-            break;
-          } else if (thread._state == ThreadState.Terminated) {
+          }          
+
+          if (thread._state == ThreadState.Terminated) {
             var next = entry.next;
             entry.unlink();
             entry = next;
@@ -87,9 +76,7 @@ class _EventLoop {
     }
 
     if (isProductive) {
-      if (!microtaskQueue.isEmpty ||
-          !timerQueue.isEmpty ||
-          !wakeupQueue.isEmpty) {
+      if (!microtaskQueue.isEmpty || !timerQueue.isEmpty || !wakeupQueue.isEmpty) {
         schedule();
       }
     }

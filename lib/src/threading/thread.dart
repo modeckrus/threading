@@ -1,7 +1,6 @@
 part of threading;
 
-typedef dynamic _UncaughtErrorHandler(
-    Zone zone, Object error, StackTrace stackTrace);
+typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackTrace);
 
 /**
  * The [Thread] of execution is the smallest sequence of programmed
@@ -17,8 +16,7 @@ class Thread {
 
   static final Thread _mainThread = new Thread._main();
 
-  static final DateTime _maxDateTime =
-      new DateTime(9999, 12, 31, 23, 59, 59, 999);
+  static final DateTime _maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, 999);
 
   static Thread get current {
     return _current;
@@ -31,13 +29,13 @@ class Thread {
 
   Completer<bool> _blocking;
 
-  Function _computation;
+  Function _computation;  
 
   bool _isAbortInitiated = false;
 
   bool _isAbortRequested = false;
 
-  bool _isInterruptRequested = false;
+  bool _isInterruptRequested = false;  
 
   // TODO: Remove
   bool _isYield = false;
@@ -91,7 +89,7 @@ class Thread {
   bool get isAborted {
     switch (_state) {
       case ThreadState.Terminated:
-        if (_isAbortRequested) {
+        if (_isAbortInitiated) {
           return true;
         }
 
@@ -251,12 +249,24 @@ class Thread {
     _timers.add(timer);
   }
 
+  void _afterCallback() {
+    //
+  }
+
+  void _beforeCallback() {
+    if (_isAbortRequested) {      
+      _clearAbortRequest();
+      _isAbortInitiated = true;
+      throw new ThreadAbortException();
+    }
+  }
+
   void _block() {
     if (_blocking != null && !_blocking.isCompleted) {
       throw new ThreadStateError("Unable to block the thread");
     }
-
-    _zone.run(() => _blocking = new Completer<bool>());
+    
+    _zone.run(() => _blocking = new Completer<bool>());    
   }
 
   Future _broadcast(ConditionVariable monitor) {
@@ -306,22 +316,20 @@ class Thread {
 
   void _executeActive(Function callback) {
     try {
-      if (_isAbortRequested) {
-        _clearAbortRequest();
-        _isAbortInitiated = true;
-        throw new ThreadAbortException();
-      } else {
-        callback();
-      }
+      //if (_isAbortRequested) {
+      //  _clearAbortRequest();
+      //  _isAbortInitiated = true;
+      //  throw new ThreadAbortException();
+      //} else {
+      callback();
+      //}
     } catch (error, stackTrace) {
       _zone.handleUncaughtError(error, stackTrace);
       return;
     }
 
     if (_state != ThreadState.Terminated && _state == ThreadState.Active) {
-      if (_pendingCallbackCount == 0 &&
-          _scheduledCallbackCount == 0 &&
-          _timers.isEmpty) {
+      if (_pendingCallbackCount == 0 && _scheduledCallbackCount == 0 && _timers.isEmpty) {
         _terminate();
       }
     }
@@ -337,13 +345,13 @@ class Thread {
     //_isYield = true;
     try {
       throw error;
-    } catch (error, stackTrace) {
-      _blocking.completeError(error, stackTrace);
+    } catch (error, stackTrace) {      
+      _blocking.completeError(error, stackTrace);      
     }
   }
 
-  dynamic _handleUncaughtError(Zone zone, Object error, StackTrace stackTrace,
-      _UncaughtErrorHandler handleUncaughtError) {
+  dynamic _handleUncaughtError(
+      Zone zone, Object error, StackTrace stackTrace, _UncaughtErrorHandler handleUncaughtError) {
     _terminate();
     if (!(error is ThreadAbortException || error is ThreadInterruptException)) {
       handleUncaughtError(zone, error, stackTrace);
@@ -363,6 +371,7 @@ class Thread {
     _zone.scheduleMicrotask(() => microtask());
   }
 
+  // TODP: Rename _injectException
   void _injectException(Object error) {
     _cancelWakeupTimer();
     _fail(error);
@@ -654,8 +663,8 @@ class Thread {
 
   void _yieldUp([bool value]) {
     // TODO:
-    //_isYield = true;
-    _blocking.complete(value);
+    //_isYield = true;    
+    _blocking.complete(value);    
   }
 
   static Future sleep(int timeout) {
