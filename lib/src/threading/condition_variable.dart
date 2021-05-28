@@ -19,11 +19,11 @@ class ConditionVariable {
     return _owner._lockCount;
   }
 
-  Thread get _lockOwner {
+  Thread? get _lockOwner {
     return _owner._lockOwner;
   }
 
-  void set _lockOwner(Thread owner) {
+  void set _lockOwner(Thread? owner) {
     _owner._lockOwner = owner;
   }
 
@@ -35,20 +35,20 @@ class ConditionVariable {
    * Wakes up all waiting threads.
    */
   Future broadcast() {
-    return Thread._current._broadcast(this);
+    return Thread._current!._broadcast(this);
   }
 
   /**
    * Wakes up one waiting thread.
    */
   Future signal() {
-    return Thread._current._signal(this);
+    return Thread._current!._signal(this);
   }
 
   /**
    * Causes the current thread to wait until it is signalled or interrupted.
    */
-  Future<bool> wait([int timeout]) {
-    return Thread._current._wait(this, timeout);
+  Future<bool> wait([int? timeout]) {
+    return Thread._current!._wait(this, timeout);
   }
 }

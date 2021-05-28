@@ -1,6 +1,7 @@
 part of threading;
 
-typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackTrace);
+typedef dynamic _UncaughtErrorHandler(
+    Zone zone, Object error, StackTrace stackTrace);
 
 /**
  * The [Thread] of execution is the smallest sequence of programmed
@@ -12,55 +13,56 @@ typedef dynamic _UncaughtErrorHandler(Zone zone, Object error, StackTrace stackT
  * yields control or it blocks.
  */
 class Thread {
-  static Thread _current = _mainThread;
+  static Thread? _current = _mainThread;
 
   static final Thread _mainThread = new Thread._main();
 
-  static final DateTime _maxDateTime = new DateTime(9999, 12, 31, 23, 59, 59, 999);
+  static final DateTime _maxDateTime =
+      new DateTime(9999, 12, 31, 23, 59, 59, 999);
 
-  static Thread get current {
+  static Thread? get current {
     return _current;
   }
 
   /**
    * The name of the [Thread].
    */
-  String name;
+  String? name;
 
-  Completer<bool> _blocking;
+  Completer<bool>? _blocking;
 
-  Function _computation;  
+  late Function _computation;
 
   bool _isAbortInitiated = false;
 
   bool _isAbortRequested = false;
 
-  bool _isInterruptRequested = false;  
+  bool _isInterruptRequested = false;
 
   // TODO: Remove
   bool _isYield = false;
 
-  Thread _joinedThread;
+  Thread? _joinedThread;
 
-  Set<Thread> _joinSet;
+  Set<Thread>? _joinSet;
 
-  ConditionVariable _monitor;
+  ConditionVariable? _monitor;
 
   int _pendingCallbackCount = 0;
 
   int _scheduledCallbackCount = 0;
 
-  ThreadState _state;
+  ThreadState? _state;
 
-  bool _timedOut;
+  bool? _timedOut;
 
-  Set<Timer> _timers = new Set<Timer>();
+  Set<Timer?> _timers = new Set<Timer?>();
 
-  DateTime _wakeupTime;
+  DateTime? _wakeupTime;
 
-  Timer _wakeupTimer;
+  Timer? _wakeupTimer;
 
-  Zone _zone;
+  Zone? _zone;
 
   // TODO:
   Thread(Function computation) {
@@ -131,7 +133,7 @@ class Thread {
   /**
    * Returns the current state of the [Thread].
    */
-  ThreadState get state {
+  ThreadState? get state {
     return _state;
   }
 
@@ -139,36 +141,36 @@ class Thread {
    * Initiates the abort of the [Thread].
    */
   Future abort() {
-    _current._block();
-    _current._abort(this);
-    return _current._blocking.future;
+    _current!._block();
+    _current!._abort(this);
+    return _current!._blocking!.future;
   }
 
   /**
    * Initiates the interrupt of the [Thread].
    */
   Future interrupt() {
-    _current._block();
-    _current._interrupt(this);
-    return _current._blocking.future;
+    _current!._block();
+    _current!._interrupt(this);
+    return _current!._blocking!.future;
   }
 
   /**
    * Joins the [Thread] and returns when the thread execution has completed.
    */
-  Future<bool> join([int timeout]) {
-    _current._block();
-    _current._join(this, timeout);
-    return _current._blocking.future;
+  Future<bool> join([int? timeout]) {
+    _current!._block();
+    _current!._join(this, timeout);
+    return _current!._blocking!.future;
   }
 
   /**
    * Initiates the execution of the [Thread].
    */
-  Future start([Object parameter]) {
+  Future start([Object? parameter]) {
     _block();
     _start(parameter);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
   String toString() {
@@ -206,17 +208,20 @@ class Thread {
     }
   }
 
-  Future _acquire(ConditionVariable monitor) {
+  Future _acquire(ConditionVariable? monitor) {
     _block();
     _acquire_(monitor);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _acquire_(ConditionVariable monitor) {
+  void _acquire_(ConditionVariable? monitor) {
     if (monitor == null) {
       _failUp(new ArgumentError.notNull("monitor"));
     } else if (monitor._lockOwner == this) {
-      monitor._owner._lockCount[this]++;
+      if (monitor._owner._lockCount[this] == null) {
+      } else {
+        monitor._owner._lockCount[this] = monitor._owner._lockCount[this]! + 1;
+      }
       _yieldUp();
     } else if (monitor._lockOwner == null && monitor._readyQueue.isEmpty) {
       _lock(monitor);
@@ -245,7 +250,7 @@ class Thread {
     }
   }
 
-  void _addTimer(Timer timer) {
+  void _addTimer(Timer? timer) {
     _timers.add(timer);
   }
 
@@ -254,7 +259,7 @@ class Thread {
   }
 
   void _beforeCallback() {
-    if (_isAbortRequested) {      
+    if (_isAbortRequested) {
       _clearAbortRequest();
       _isAbortInitiated = true;
       throw new ThreadAbortException();
@@ -262,20 +267,20 @@ class Thread {
   }
 
   void _block() {
-    if (_blocking != null && !_blocking.isCompleted) {
+    if (_blocking != null && !_blocking!.isCompleted) {
       throw new ThreadStateError("Unable to block the thread");
     }
-    
-    _zone.run(() => _blocking = new Completer<bool>());    
+
+    _zone!.run(() => _blocking = new Completer<bool>());
   }
 
-  Future _broadcast(ConditionVariable monitor) {
+  Future _broadcast(ConditionVariable? monitor) {
     _block();
     _broadcast_(monitor);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _broadcast_(ConditionVariable monitor) {
+  void _broadcast_(ConditionVariable? monitor) {
     if (monitor == null) {
       _failUp(new ArgumentError.notNull("monitor"));
     } else if (monitor._lockOwner != this) {
@@ -294,7 +299,7 @@ class Thread {
 
   bool _cancelWakeupTimer() {
     if (_wakeupTimer != null) {
-      _wakeupTimer.cancel();
+      _wakeupTimer!.cancel();
       _timers.remove(_wakeupTimer);
       _wakeupTimer = null;
       return true;
@@ -308,7 +313,7 @@ class Thread {
     _isInterruptRequested = false;
   }
 
-  Thread _enter() {
+  Thread? _enter() {
     var previous = _current;
     _current = this;
     return previous;
@@ -324,12 +329,14 @@ class Thread {
       callback();
       //}
     } catch (error, stackTrace) {
-      _zone.handleUncaughtError(error, stackTrace);
+      _zone!.handleUncaughtError(error, stackTrace);
       return;
     }
 
     if (_state != ThreadState.Terminated && _state == ThreadState.Active) {
-      if (_pendingCallbackCount == 0 && _scheduledCallbackCount == 0 && _timers.isEmpty) {
+      if (_pendingCallbackCount == 0 &&
+          _scheduledCallbackCount == 0 &&
+          _timers.isEmpty) {
         _terminate();
       }
     }
@@ -345,13 +352,13 @@ class Thread {
     //_isYield = true;
     try {
       throw error;
-    } catch (error, stackTrace) {      
-      _blocking.completeError(error, stackTrace);      
+    } catch (error, stackTrace) {
+      _blocking!.completeError(error, stackTrace);
     }
   }
 
-  dynamic _handleUncaughtError(
-      Zone zone, Object error, StackTrace stackTrace, _UncaughtErrorHandler handleUncaughtError) {
+  dynamic _handleUncaughtError(Zone zone, Object error, StackTrace stackTrace,
+      _UncaughtErrorHandler handleUncaughtError) {
     _terminate();
     if (!(error is ThreadAbortException || error is ThreadInterruptException)) {
       handleUncaughtError(zone, error, stackTrace);
@@ -360,15 +367,15 @@ class Thread {
     return null;
   }
 
-  void _init(Object parameter) {
+  void _init(Object? parameter) {
     Function microtask;
     if (_computation is ZoneCallback) {
-      microtask = _zone.bindCallback(() => _computation());
+      microtask = _zone!.bindCallback(() => _computation());
     } else {
-      microtask = _zone.bindCallback(() => _computation(parameter));
+      microtask = _zone!.bindCallback(() => _computation(parameter));
     }
 
-    _zone.scheduleMicrotask(() => microtask());
+    _zone!.scheduleMicrotask(() => microtask());
   }
 
   // TODP: Rename _injectException
@@ -382,7 +389,7 @@ class Thread {
         _state = ThreadState.Active;
         break;
       case ThreadState.Waiting:
-        _moveToReadyQueue(_monitor);
+        _moveToReadyQueue(_monitor!);
         break;
       default:
         break;
@@ -405,7 +412,7 @@ class Thread {
     }
   }
 
-  void _join(Thread thread, int timeout) {
+  void _join(Thread thread, int? timeout) {
     if (timeout != null && timeout < -1) {
       _failUp(new RangeError.value(timeout, "timeout"));
     } else if (_isInterruptRequested) {
@@ -419,7 +426,7 @@ class Thread {
         thread._joinSet = new Set<Thread>();
       }
 
-      thread._joinSet.add(this);
+      thread._joinSet!.add(this);
       if (timeout != null) {
         _setupWakeupTimer(timeout);
       }
@@ -428,7 +435,7 @@ class Thread {
 
   void _joinReturn() {
     _cancelWakeupTimer();
-    switch (_joinedThread._state) {
+    switch (_joinedThread!._state) {
       case ThreadState.Terminated:
         _yieldUp(true);
         break;
@@ -438,7 +445,7 @@ class Thread {
     }
   }
 
-  void _leave(Thread previous) {
+  void _leave(Thread? previous) {
     _current = previous;
   }
 
@@ -452,19 +459,20 @@ class Thread {
     _state = ThreadState.Signaled;
   }
 
-  Future _release(ConditionVariable monitor) {
+  Future _release(ConditionVariable? monitor) {
     _block();
     _release_(monitor);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _release_(ConditionVariable monitor) {
+  void _release_(ConditionVariable? monitor) {
     if (monitor == null) {
       throw new ArgumentError.notNull("monitor");
     } else if (monitor._lockOwner != this) {
       throw new SynchronizationException();
     } else {
-      if (--monitor._lockCount[this] == 0) {
+      final lcount = monitor._lockCount[this]! - 1;
+      if (lcount == 0) {
         _unlock(monitor);
         _releaseLock(monitor);
       }
@@ -496,13 +504,13 @@ class Thread {
     _addTimer(_wakeupTimer);
   }
 
-  Future _signal(ConditionVariable monitor) {
+  Future _signal(ConditionVariable? monitor) {
     _block();
     _signal_(monitor);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _signal_(ConditionVariable monitor) {
+  void _signal_(ConditionVariable? monitor) {
     if (monitor == null) {
       _failUp(new ArgumentError.notNull("monitor"));
     } else if (monitor._owner._lockOwner != this) {
@@ -530,7 +538,7 @@ class Thread {
     }
   }
 
-  void _start(Object parameter) {
+  void _start(Object? parameter) {
     if (_state != ThreadState.Unstarted) {
       _failUp(new ThreadStateError("Unable to start the thread"));
     } else {
@@ -550,17 +558,17 @@ class Thread {
     var timers = _timers.toList();
     _timers.clear();
     for (var timer in timers) {
-      timer.cancel();
+      timer!.cancel();
     }
 
     if (_joinSet != null) {
-      for (var thread in _joinSet) {
+      for (var thread in _joinSet!) {
         thread._state = ThreadState.Active;
         thread._joinReturn();
         thread._joinedThread = null;
       }
 
-      _joinSet.clear();
+      _joinSet!.clear();
     }
   }
 
@@ -569,19 +577,19 @@ class Thread {
     _isInterruptRequested = false;
   }
 
-  Future<bool> _tryAcquire(ConditionVariable monitor, int timeout) {
+  Future<bool> _tryAcquire(ConditionVariable? monitor, int? timeout) {
     _block();
     _tryAcquire_(monitor, timeout);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _tryAcquire_(ConditionVariable monitor, int timeout) {
+  void _tryAcquire_(ConditionVariable? monitor, int? timeout) {
     if (monitor == null) {
       _failUp(new ArgumentError.notNull("monitor"));
     } else if (timeout != null && timeout < -1) {
       _failUp(new RangeError.value(timeout, "timeout"));
     } else if (monitor._lockOwner == this) {
-      monitor._lockCount[this]++;
+      monitor._lockCount[this] = monitor._lockCount[this]! + 1;
       _yieldUp(true);
     } else if (monitor._lockOwner == null && monitor._readyQueue.isEmpty) {
       _lock(monitor);
@@ -601,13 +609,13 @@ class Thread {
     monitor._lockOwner = null;
   }
 
-  Future<bool> _wait(ConditionVariable monitor, int timeout) {
+  Future<bool> _wait(ConditionVariable? monitor, int? timeout) {
     _block();
     _wait_(monitor, timeout);
-    return _blocking.future;
+    return _blocking!.future;
   }
 
-  void _wait_(ConditionVariable monitor, int timeout) {
+  void _wait_(ConditionVariable? monitor, int? timeout) {
     if (monitor == null) {
       _failUp(new ArgumentError.notNull("monitor"));
     } else if (timeout != null && timeout < -1) {
@@ -636,7 +644,7 @@ class Thread {
       case ThreadState.Joined:
         _state = ThreadState.Active;
         _joinReturn();
-        _joinedThread._joinSet.remove(this);
+        _joinedThread!._joinSet!.remove(this);
         _joinedThread = null;
         break;
       case ThreadState.Sleeping:
@@ -645,12 +653,12 @@ class Thread {
         break;
       case ThreadState.Syncing:
         _state = ThreadState.Active;
-        _monitor._readyQueue.remove(this);
+        _monitor!._readyQueue.remove(this);
         _monitor = null;
         _yieldUp(false);
         break;
       case ThreadState.Waiting:
-        _moveToReadyQueue(_monitor);
+        _moveToReadyQueue(_monitor!);
         _monitor = null;
         // TODO:
         _timedOut = true;
@@ -661,15 +669,15 @@ class Thread {
     }
   }
 
-  void _yieldUp([bool value]) {
+  void _yieldUp([bool? value]) {
     // TODO:
-    //_isYield = true;    
-    _blocking.complete(value);    
+    //_isYield = true;
+    _blocking!.complete(value);
   }
 
   static Future sleep(int timeout) {
-    _current._block();
-    _current._sleep(timeout);
-    return _current._blocking.future;
+    _current!._block();
+    _current!._sleep(timeout);
+    return _current!._blocking!.future;
   }
 }

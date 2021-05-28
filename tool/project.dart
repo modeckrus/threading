@@ -80,7 +80,7 @@ void main(List<String> args) {
   after(["git:commit"], (Target t, Map args) {
     var version = incrementVersion(getVersion());
     print("Change the project version to '$version' (Y/N)?");
-    if (stdin.readLineSync().toLowerCase().startsWith("y")) {
+    if (stdin.readLineSync()!.toLowerCase().startsWith("y")) {
       updateVersion(version);
       print("Version switched to $version");
     }
@@ -269,7 +269,7 @@ void writeChangelogMd() {
   for (var version in versions.keys) {
     sb.writeln("## ${version}");
     sb.writeln();
-    var messages = versions[version];
+    var messages = versions[version]!;
     messages.sort((a, b) => a.compareTo(b));
     for (var message in messages) {
       sb.writeln("- $message");

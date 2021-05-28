@@ -14,7 +14,7 @@ class _EventLoop {
   void loop() {
     _isScheduled = false;
     var done = false;
-    _LinkedListEntry<_ThreadCallback> entry;
+    _LinkedListEntry<_ThreadCallback>? entry;
     var isProductive = false;
     if (!wakeupQueue.isEmpty) {
       entry = wakeupQueue.first;
@@ -22,14 +22,14 @@ class _EventLoop {
       var callback = entry.element;
       var thread = callback.thread;
       thread._scheduledCallbackCount--;
-      thread._zone.runGuarded(() => callback.function());
+      thread._zone!.runGuarded(() => callback.function());
       done = true;
       isProductive = true;
     }
 
     if (!done) {
       for (var step = 0; step < 2; step++) {
-        LinkedList<_LinkedListEntry<_ThreadCallback>> queue;
+        late LinkedList<_LinkedListEntry<_ThreadCallback>> queue;
         switch (step) {
           case 0:
             queue = microtaskQueue;
@@ -45,7 +45,7 @@ class _EventLoop {
 
         entry = queue.first;
         while (true) {
-          var callback = entry.element;
+          var callback = entry!.element;
           var thread = callback.thread;
           if (thread._state == ThreadState.Active) {
             entry.unlink();
@@ -57,7 +57,7 @@ class _EventLoop {
           }          
 
           if (thread._state == ThreadState.Terminated) {
-            var next = entry.next;
+            _LinkedListEntry<_ThreadCallback>? next = entry.next;
             entry.unlink();
             entry = next;
           } else {

@@ -8,7 +8,7 @@ class _ZoneHandle {
 
   final Thread thread;
 
-  Zone zone;
+  Zone? zone;
 
   _ZoneHandle(this.thread) {
     if (thread == null) {
@@ -52,7 +52,7 @@ class _ZoneHandle {
   Timer _createTimer(Zone self, ZoneDelegate parent, Zone zone, Duration duration, void f()) {    
     var isSystemTimer = _isSystemTimer;
     _isSystemTimer = false;
-    Timer timer;
+    Timer? timer;
     void callback() {      
       thread._pendingCallbackCount--;
       thread._scheduledCallbackCount++;
@@ -72,11 +72,11 @@ class _ZoneHandle {
     return timer;
   }
 
-  AsyncError _errorCallback(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace stackTrace) {
+  AsyncError? _errorCallback(Zone self, ZoneDelegate parent, Zone zone, Object error, StackTrace? stackTrace) {
     return parent.errorCallback(zone, error, stackTrace);
   }
 
-  Zone _fork(Zone self, ZoneDelegate parent, Zone zone, ZoneSpecification specification, Map zoneValues) {
+  Zone _fork(Zone self, ZoneDelegate parent, Zone zone, ZoneSpecification? specification, Map? zoneValues) {
     return parent.fork(Zone.root, specification, zoneValues);
   }
 
@@ -91,7 +91,7 @@ class _ZoneHandle {
   ZoneBinaryCallback<R, T1, T2> _registerBinaryCallback<R, T1, T2>(
       Zone self, ZoneDelegate parent, Zone zone, R f(T1 arg1, T2 arg2)) {    
     R callback(T1 arg1, T2 arg2) {      
-      Thread previous;
+      Thread? previous;
       try {
         previous = thread._enter();
         thread._beforeCallback();
@@ -107,7 +107,7 @@ class _ZoneHandle {
 
   ZoneCallback<R> _registerCallback<R>(Zone self, ZoneDelegate parent, Zone zone, R f()) {    
     R callback() {      
-      Thread previous;
+      Thread? previous;
       try {
         previous = thread._enter();
         thread._beforeCallback();
@@ -123,7 +123,7 @@ class _ZoneHandle {
 
   ZoneUnaryCallback<R, T> _registerUnaryCallback<R, T>(Zone self, ZoneDelegate parent, Zone zone, R f(T arg)) {    
     R callback(T arg) {      
-      Thread previous;
+      Thread? previous;
       try {
         previous = thread._enter();
         thread._beforeCallback();
@@ -173,7 +173,7 @@ class _ZoneHandle {
   }
 
   static Timer _createSystemTimer(Thread thread, Duration duration, Function function) {    
-    _LinkedListEntry<_TimedCallback> entry;
+    late _LinkedListEntry<_TimedCallback> entry;
     _isSystemTimer = true;
     var date = new DateTime.now().add(duration);
     void f() {      
@@ -181,7 +181,7 @@ class _ZoneHandle {
     }
 
     var callback = new _ThreadCallback(thread, f);
-    Timer timer;
+    late Timer timer;
     void action() {      
       // TODO:
       thread._scheduledCallbackCount++;
@@ -195,7 +195,7 @@ class _ZoneHandle {
       }
     }
 
-    timer = thread._zone.createTimer(duration, () {
+    timer = thread._zone!.createTimer(duration, () {
       //thread._scheduledCallbackCount--;
       entry.unlink();
       //function();
@@ -206,10 +206,10 @@ class _ZoneHandle {
     if (_timedCallbacks.isEmpty) {
       _timedCallbacks.add(entry);
     } else {
-      var current = _timedCallbacks.last;
+      _LinkedListEntry<_TimedCallback>? current = _timedCallbacks.last;
       var done = false;
       while (true) {
-        if (current.element.date.compareTo(date) <= 0) {
+        if (current!.element.date.compareTo(date) <= 0) {
           current.insertAfter(entry);
           done = true;
           break;
@@ -235,14 +235,14 @@ class _ZoneHandle {
     }
 
     var now = new DateTime.now();
-    var entry = _timedCallbacks.first;
+    _LinkedListEntry<_TimedCallback>? entry = _timedCallbacks.first;
     while (true) {
-      var callback = entry.element;
+      var callback = entry!.element;
       if (callback.date.compareTo(now) > 0) {
         break;
       }
 
-      var next = entry.next;
+      _LinkedListEntry<_TimedCallback>? next = entry.next;
       entry.unlink();
       entry = next;
       // TODO:

@@ -1,7 +1,7 @@
 part of threading;
 
 class ThreadInterruptException implements Exception {
-  final String message;
+  final String? message;
 
   ThreadInterruptException([this.message]);
 

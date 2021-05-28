@@ -14,7 +14,7 @@ Future main() async {
   for (var i = 0; i < total; i++) {
     var thread = new Thread(() async {
       await buffer.put(i);
-      print("${Thread.current.name}: => $i");
+      print("${Thread.current!.name}: => $i");
       produced++;
     });
 
@@ -26,7 +26,7 @@ Future main() async {
   for (var i = 0; i < total; i++) {
     var thread = new Thread(() async {
       var x = await buffer.take();
-      print("${Thread.current.name}: <= $x");
+      print("${Thread.current!.name}: <= $x");
       consumed++;
     });
 
@@ -48,20 +48,20 @@ class _BoundedBuffer<T> {
 
   int _count = 0;
 
-  List<T> _items;
+  late List<T?> _items;
 
   final Lock _lock = new Lock();
 
-  ConditionVariable _notEmpty;
+  late ConditionVariable _notEmpty;
 
-  ConditionVariable _notFull;
+  late ConditionVariable _notFull;
 
   int _putptr = 0;
 
   int _takeptr = 0;
 
   _BoundedBuffer(this.length) {
-    _items = new List<T>(length);
+    _items = new List<T?>.filled(length, null);
     _notFull = new ConditionVariable(_lock);
     _notEmpty = new ConditionVariable(_lock);
   }
@@ -85,7 +85,7 @@ class _BoundedBuffer<T> {
     }
   }
 
-  Future<T> take() async {
+  Future<T?> take() async {
     await _lock.acquire();
     try {
       while (_count == 0) {

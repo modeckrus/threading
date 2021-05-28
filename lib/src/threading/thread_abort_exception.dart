@@ -1,7 +1,7 @@
 part of threading;
 
 class ThreadAbortException implements Exception {
-  final String message;
+  final String? message;
 
   ThreadAbortException([this.message]);
 

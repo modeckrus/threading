@@ -5,7 +5,7 @@ part of threading;
  * owner of the monitor.
  */
 class SynchronizationException implements Exception {
-  final String message;
+  final String? message;
 
   SynchronizationException([this.message]);
 

@@ -287,7 +287,7 @@ Future testThreadAbort() async {
 Future testThreadInterrupt() async {
   await testAsync("Interrupt thread with timer", () async {
     var value = false;
-    Timer timer;
+    late Timer timer;
     Future work() async {
       timer = new Timer(new Duration(seconds: 1), () => value = true);
       await Thread.sleep(500);
@@ -303,7 +303,7 @@ Future testThreadInterrupt() async {
 
   await testAsync("Interrupt thread with periodic timer", () async {
     var value = false;
-    Timer timer;
+    late Timer timer;
     Future work() async {
       timer = new Timer.periodic(
           new Duration(milliseconds: 100), (t) => value = true);
@@ -323,7 +323,7 @@ Future testThreadInterrupt() async {
   await testAsync("Interrupt thread (catch ThreadInterruptException)",
       () async {
     var value = 0;
-    ThreadInterruptException exception;
+    ThreadInterruptException? exception;
     Future work() async {
       try {
         value++;
@@ -347,7 +347,7 @@ Future testThreadInterrupt() async {
   await testAsync("Interrupt thread (itself)", () async {
     var value = false;
     Future work() async {
-      await Thread.current.interrupt();
+      await Thread.current!.interrupt();
       await Thread.sleep(500);
       value = true;
     }
@@ -360,7 +360,7 @@ Future testThreadInterrupt() async {
 
   await testAsync("Interrupt passive thread", () async {
     var value = false;
-    ThreadState state;
+    ThreadState? state;
     Future work() async {
       try {
         // Sleep infinitely
@@ -495,20 +495,20 @@ class _BoundedBuffer<T> {
 
   int _count = 0;
 
-  List<T> _items;
+  late List<T?> _items;
 
   final Lock _lock = new Lock();
 
-  ConditionVariable _notEmpty;
+  late ConditionVariable _notEmpty;
 
-  ConditionVariable _notFull;
+  late ConditionVariable _notFull;
 
   int _putptr = 0;
 
   int _takeptr = 0;
 
   _BoundedBuffer(this.length) {
-    _items = new List<T>(length);
+    _items = new List<T?>.filled(length, null);
     _notFull = new ConditionVariable(_lock);
     _notEmpty = new ConditionVariable(_lock);
   }
@@ -532,7 +532,7 @@ class _BoundedBuffer<T> {
     }
   }
 
-  Future<T> take() async {
+  Future<T?> take() async {
     await _lock.acquire();
     try {
       while (_count == 0) {

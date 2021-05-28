@@ -8,11 +8,11 @@ part of threading;
 class Lock {
   final Queue<Thread> _readyQueue = new Queue<Thread>();
 
-  ConditionVariable _monitor;
+  ConditionVariable? _monitor;
 
   Map<Thread, int> _lockCount = <Thread, int>{};
 
-  Thread _lockOwner;
+  Thread? _lockOwner;
 
   Lock() {
     _monitor = new ConditionVariable(this);
@@ -22,28 +22,28 @@ class Lock {
    * Acquires the lock.
    */
   Future acquire() {
-    return Thread._current._acquire(_monitor);
+    return Thread._current!._acquire(_monitor);
   }
 
   /**
    * Wakes up all waiting threads.
    */
   Future broadcast() {
-    return Thread._current._broadcast(_monitor);
+    return Thread._current!._broadcast(_monitor);
   }
 
   /**
    * Releases the lock.
    */
   Future release() {
-    return Thread._current._release(_monitor);
+    return Thread._current!._release(_monitor);
   }
 
   /**
    * Wakes up one waiting thread.
    */
   Future signal() {
-    return Thread._current._signal(_monitor);
+    return Thread._current!._signal(_monitor);
   }
 
   /**
@@ -53,14 +53,14 @@ class Lock {
    *  [int] [timeout]
    *  The number of milliseconds to wait for the lock.
    */
-  Future<bool> tryAcquire([int timeout]) {
-    return Thread._current._tryAcquire(_monitor, timeout);
+  Future<bool> tryAcquire([int? timeout]) {
+    return Thread._current!._tryAcquire(_monitor, timeout);
   }
 
   /**
    * Causes the current thread to wait until it is signalled or interrupted.
    */
-  Future<bool> wait([int timeout]) {
-    return Thread._current._wait(_monitor, timeout);
+  Future<bool> wait([int? timeout]) {
+    return Thread._current!._wait(_monitor, timeout);
   }
 }

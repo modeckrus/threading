@@ -5,7 +5,7 @@ part of threading;
  * [ThreadState] for the method call.
  */
 class ThreadStateError extends Error {
-  final String message;
+  final String? message;
 
   ThreadStateError([this.message]);
 
